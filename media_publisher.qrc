@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/css/camera_menu.css</file>
+        <file>res/css/show_widget.css</file>
+        <file>res/css/title.css</file>
+        <file>res/fontawesome-webfont.ttf</file>
+        <file>res/css/media_publisher.css</file>
+    </qresource>
+</RCC>

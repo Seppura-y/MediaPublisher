@@ -1,0 +1,33 @@
+* {
+    background-color: #202129;
+    border: none;
+    color: white;
+}
+
+QPushButton:hover {
+    color: Cyan;
+}
+
+QPushButton:pressed {
+    color: CadetBlue;
+}
+
+QPushButton#pb_close:hover {
+    color: Tomato;
+}
+
+QPushButton#pb_close:pressed {
+    color: red;
+    /*background:#FF0000;*/
+}
+
+QLabel#pb_menu {
+    color: #c4c6d2;
+}
+
+/**********ÌבÊ¾**********/
+QToolTip {
+    border: none;
+    background-color: #2e2f37;
+    color: white;
+}

@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{82643300-8CA9-4DCC-A152-69923DD7168E}</ProjectGuid>
+    <Keyword>QtVS_v304</Keyword>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|Win32'">10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|Win32'">10.0.19041.0</WindowsTargetPlatformVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Win32'" Label="QtSettings">
+    <QtInstall>5.15.2_msvc2019</QtInstall>
+    <QtModules>core;gui;widgets</QtModules>
+    <QtBuildConfig>debug</QtBuildConfig>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Win32'" Label="QtSettings">
+    <QtInstall>5.15.2_msvc2019</QtInstall>
+    <QtModules>core;gui;widgets</QtModules>
+    <QtBuildConfig>release</QtBuildConfig>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(QtMsBuild)\Qt.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(QtMsBuild)\Qt.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Win32'">
+    <OutDir>../../bin/x86</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Win32'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(Qt515_INCLUDEPATH_);../../include;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>../../lib/x86;$(Qt515_LIBPATH_);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Win32'" Label="Configuration">
+    <ClCompile>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Win32'" Label="Configuration">
+    <ClCompile>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <Optimization>MaxSpeed</Optimization>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="amf.c" />
+    <ClCompile Include="av_data_tools.cpp" />
+    <ClCompile Include="avtimebase.cpp" />
+    <ClCompile Include="av_codec_base.cpp" />
+    <ClCompile Include="av_decoder.cpp" />
+    <ClCompile Include="av_decode_handler.cpp" />
+    <ClCompile Include="av_demuxer.cpp" />
+    <ClCompile Include="av_demux_handler.cpp" />
+    <ClCompile Include="av_devide_handler.cpp" />
+    <ClCompile Include="av_encoder.cpp" />
+    <ClCompile Include="av_encode_handler.cpp" />
+    <ClCompile Include="av_format_base.cpp" />
+    <ClCompile Include="av_muxer.cpp" />
+    <ClCompile Include="av_mux_handler.cpp" />
+    <ClCompile Include="av_screen_capturer.cpp" />
+    <ClCompile Include="av_screen_cap_handler.cpp" />
+    <ClCompile Include="base_handler.cpp" />
+    <ClCompile Include="camera_menu.cpp" />
+    <ClCompile Include="capture_widget.cpp" />
+    <ClCompile Include="configuration_tools.cpp" />
+    <ClCompile Include="element_widget.cpp" />
+    <ClCompile Include="hashswf.c" />
+    <ClCompile Include="iav_base_handler.cpp" />
+    <ClCompile Include="item_listwidget.cpp" />
+    <ClCompile Include="ivideo_view.cpp" />
+    <ClCompile Include="log.c" />
+    <ClCompile Include="message_base.cpp" />
+    <ClCompile Include="parseurl.c" />
+    <ClCompile Include="preview_widget.cpp" />
+    <ClCompile Include="rtmp.c" />
+    <ClCompile Include="rtmp_base.cpp" />
+    <ClCompile Include="rtmp_pusher.cpp" />
+    <ClCompile Include="sdl_view.cpp" />
+    <ClCompile Include="semaphore.cpp" />
+    <ClCompile Include="show_widget.cpp" />
+    <ClCompile Include="title.cpp" />
+    <QtRcc Include="media_publisher.qrc" />
+    <QtUic Include="camera_menu.ui" />
+    <QtUic Include="media_publisher.ui" />
+    <QtMoc Include="media_publisher.h" />
+    <ClCompile Include="media_publisher.cpp" />
+    <ClCompile Include="main.cpp" />
+    <QtUic Include="preview_widget.ui" />
+    <QtUic Include="show_widget.ui" />
+    <QtUic Include="title.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="title.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="show_widget.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="camera_menu.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="amf.h" />
+    <ClInclude Include="av_data_tools.h" />
+    <ClInclude Include="avtimebase.h" />
+    <ClInclude Include="av_codec_base.h" />
+    <ClInclude Include="av_decoder.h" />
+    <ClInclude Include="av_decode_handler.h" />
+    <ClInclude Include="av_demuxer.h" />
+    <ClInclude Include="av_demux_handler.h" />
+    <ClInclude Include="av_devide_handler.h" />
+    <ClInclude Include="av_encoder.h" />
+    <ClInclude Include="av_encode_handler.h" />
+    <ClInclude Include="av_format_base.h" />
+    <ClInclude Include="av_muxer.h" />
+    <ClInclude Include="av_mux_handler.h" />
+    <ClInclude Include="av_screen_capturer.h" />
+    <ClInclude Include="av_screen_cap_handler.h" />
+    <ClInclude Include="base_handler.h" />
+    <ClInclude Include="bytes.h" />
+    <QtMoc Include="capture_widget.h" />
+    <ClInclude Include="configuration_tools.h" />
+    <ClInclude Include="dh.h" />
+    <ClInclude Include="dhgroups.h" />
+    <QtMoc Include="preview_widget.h" />
+    <QtMoc Include="element_widget.h" />
+    <ClInclude Include="handshake.h" />
+    <ClInclude Include="http.h" />
+    <ClInclude Include="iav_base_handler.h" />
+    <ClInclude Include="ivideo_view.h" />
+    <ClInclude Include="log.h" />
+    <ClInclude Include="media_base.h" />
+    <ClInclude Include="message_base.h" />
+    <ClInclude Include="rtmp.h" />
+    <ClInclude Include="rtmp_base.h" />
+    <ClInclude Include="rtmp_pusher.h" />
+    <ClInclude Include="rtmp_sys.h" />
+    <ClInclude Include="sdl_view.h" />
+    <ClInclude Include="semaphore.h" />
+    <ClInclude Include="timeutil.h" />
+    <QtMoc Include="item_listwidget.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\css\camera_menu.css" />
+    <None Include="res\css\media_publisher.css" />
+    <None Include="res\css\show_widget.css" />
+    <None Include="res\css\title.css" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
