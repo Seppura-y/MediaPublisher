@@ -29,11 +29,11 @@ public:
 	void setOutputSize(int width, int height);
 
 private:
-	int g_Width_ = -1;
-	int g_Height_ = -1;
-	int out_Width_ = -1;
-	int out_Height_ = -1;
-	SwsContext* swsCtx_ = nullptr;
+	int screen_width_ = -1;
+	int screen_height_ = -1;
+	int out_width_ = -1;
+	int out_height_ = -1;
+	SwsContext* sws_ctx_ = nullptr;
 	unsigned char* pImgData_ = nullptr;
 	int* plinesize_ = nullptr;
 	std::mutex mtx_;

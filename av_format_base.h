@@ -6,6 +6,13 @@
 #include "av_data_tools.h"
 
 struct AVFormatContext;
+
+enum class AVProtocolType
+{
+	AV_PROTOCOL_TYPE_FILE,
+	AV_PROTOCOL_TYPE_RTMP,
+	AV_PROTOCOL_TYPE_RTSP
+};
 class AVFormatBase
 {
 public:
@@ -25,6 +32,8 @@ public:
 
 	int get_audio_index();
 	int get_video_index();
+
+	virtual void SetProtocolType(AVProtocolType type);
 protected:
 	bool IsTimeout();
 	static int TimeoutCallback(void* opaque);
@@ -42,6 +51,7 @@ protected:
 	int last_read_time_ = -1;
 	bool is_network_connected_ = false;
 
+	AVProtocolType protocol_type_ = AVProtocolType::AV_PROTOCOL_TYPE_FILE;
 private:
 
 };

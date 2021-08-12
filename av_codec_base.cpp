@@ -132,7 +132,7 @@ int AVCodecBase::GetCodecExtraData(uint8_t* buffer,int& size)
 		cout << "GetCodecExtraData failed : codec_ctx_ is null" << endl;
 		return -1;
 	}
-	memcpy(buffer, codec_ctx_->extradata, sizeof(codec_ctx_->extradata_size));
+	memcpy(buffer, codec_ctx_->extradata,codec_ctx_->extradata_size);
 	size = codec_ctx_->extradata_size;
 	return 0;
 }

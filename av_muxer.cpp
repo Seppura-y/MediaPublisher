@@ -26,7 +26,7 @@ static void PrintError(int err)
 #define PRINT_ERR_I(err) if(err != 0) {PrintError(err);return -1;}
 
 
-AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam, AVCodecParameters* aparam, AVMuxerType type)
+AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam, AVCodecParameters* aparam, AVProtocolType type)
 {
 	if (!url || (!vparam && !aparam))
 	{
@@ -37,17 +37,17 @@ AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam
 	int ret = -1;
 	switch (type)
 	{
-		case(AVMuxerType::AV_MUXER_TYPE_FILE):
+		case(AVProtocolType::AV_PROTOCOL_TYPE_FILE):
 		{
 			ret = avformat_alloc_output_context2(&fmt_ctx, nullptr, nullptr, url);
 			break;
 		}
-		case(AVMuxerType::AV_MUXER_TYPE_RTMP):
+		case(AVProtocolType::AV_PROTOCOL_TYPE_RTMP):
 		{
 			ret = avformat_alloc_output_context2(&fmt_ctx, nullptr, "flv", url);
 			break;
 		}
-		case(AVMuxerType::AV_MUXER_TYPE_RTSP):
+		case(AVProtocolType::AV_PROTOCOL_TYPE_RTSP):
 		{
 			cout << "rtsp is not supported yet" << endl;
 			break;
@@ -74,6 +74,7 @@ AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam
 			avformat_free_context(fmt_ctx);
 			return nullptr;
 		}
+		a_stream->codecpar->codec_tag = 0;
 		a_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
 		ret = avcodec_parameters_copy(a_stream->codecpar, aparam);
 		if (ret < 0)
@@ -95,6 +96,7 @@ AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam
 			avformat_free_context(fmt_ctx);
 			return nullptr;
 		}
+		v_stream->codecpar->codec_tag = 0;
 		v_stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
 		ret = avcodec_parameters_copy(v_stream->codecpar, vparam);
 		if (ret < 0)
@@ -189,12 +191,26 @@ int AVMuxer::WriteData(AVPacket* pkt)
 
 	{
 		unique_lock<mutex> lock(mtx_);
-		int ret = av_interleaved_write_frame(fmt_ctx_, pkt);
-		if (ret != 0)
+		int ret = -1;
+		if (protocol_type_ == AVProtocolType::AV_PROTOCOL_TYPE_FILE)
 		{
-			cout << "av_interleaved_write_frame faield" << endl;
-			PrintError(ret);
-			return -1;
+			ret = av_interleaved_write_frame(fmt_ctx_, pkt);
+			if (ret != 0)
+			{
+				cout << "av_interleaved_write_frame faield" << endl;
+				PrintError(ret);
+				return -1;
+			}
+		}
+		else
+		{
+			ret = av_write_frame(fmt_ctx_, pkt);
+			if (ret != 0)
+			{
+				cout << "av_write_frame failed : ";
+				PrintError(ret);
+				return -1;
+			}
 		}
 	}
 	return 0;
@@ -258,26 +274,6 @@ int AVMuxer::WriteData(AVPacket* pkt)
 
 
 
-//int AVMuxer::TimeScale(int index, AVPacket* pkt, AVRational* src, long long pts)
-//{
-//	if (!pkt || !src)
-//	{
-//		cout << "TimeScale failed : (!pkt || !src)" << endl;
-//		return -1;
-//	}
-//	unique_lock<mutex> lock(mtx_);
-//	if (!fmt_ctx_)
-//	{
-//		cout << "TimeScale failed : (!fmt_ctx_)" << endl;
-//		return -1;
-//	}
-//	AVStream* stream = fmt_ctx_->streams[index];
-//	pkt->pts = av_rescale_q_rnd(pkt->pts - pts, *src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-//	pkt->dts = av_rescale_q_rnd(pkt->dts - pts, *src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-//	pkt->duration = av_rescale_q_rnd(pkt->duration, *src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-//	pkt->pos = -1;
-//	return 0;
-//}
 int AVMuxer::TimeScale(int index, AVPacket* pkt, AVRational src, long long pts)
 {
 	if (!pkt)
@@ -285,25 +281,47 @@ int AVMuxer::TimeScale(int index, AVPacket* pkt, AVRational src, long long pts)
 		cout << "TimeScale failed : (!pkt)" << endl;
 		return -1;
 	}
+	unique_lock<mutex> lock(mtx_);
+	if (!fmt_ctx_)
 	{
-		unique_lock<mutex> lock(mtx_);
-		if (!fmt_ctx_) return -1;
+		cout << "TimeScale failed : (!fmt_ctx_)" << endl;
+		return -1;
 	}
-	if (index == get_video_index())
-	{
-		pkt->pts = av_rescale_q_rnd(pkt->pts - pts, src, fmt_ctx_->streams[get_video_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-		pkt->dts = av_rescale_q_rnd(pkt->dts - pts, src, fmt_ctx_->streams[get_video_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-		pkt->duration = av_rescale_q_rnd(pkt->duration, src, fmt_ctx_->streams[get_video_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-	}
-	else if (index == get_audio_index())
-	{
-		pkt->pts = av_rescale_q_rnd(pkt->pts - pts, src, fmt_ctx_->streams[get_audio_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-		pkt->dts = av_rescale_q_rnd(pkt->dts - pts, src, fmt_ctx_->streams[get_audio_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-		pkt->duration = av_rescale_q_rnd(pkt->duration, src, fmt_ctx_->streams[get_audio_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-	}
+	AVStream* stream = fmt_ctx_->streams[index];
+	pkt->pts = av_rescale_q_rnd(pkt->pts - pts, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+	pkt->dts = av_rescale_q_rnd(pkt->dts - pts, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+	pkt->duration = av_rescale_q_rnd(pkt->duration, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
 	pkt->pos = -1;
 	return 0;
 }
+
+
+//int AVMuxer::TimeScale(int index, AVPacket* pkt, AVRational src, long long pts)
+//{
+//	if (!pkt)
+//	{
+//		cout << "TimeScale failed : (!pkt)" << endl;
+//		return -1;
+//	}
+//	{
+//		unique_lock<mutex> lock(mtx_);
+//		if (!fmt_ctx_) return -1;
+//	}
+//	if (index == get_video_index())
+//	{
+//		pkt->pts = av_rescale_q_rnd(pkt->pts - pts, src, fmt_ctx_->streams[get_video_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+//		pkt->dts = av_rescale_q_rnd(pkt->dts - pts, src, fmt_ctx_->streams[get_video_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+//		pkt->duration = av_rescale_q_rnd(pkt->duration, src, fmt_ctx_->streams[get_video_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+//	}
+//	else if (index == get_audio_index())
+//	{
+//		pkt->pts = av_rescale_q_rnd(pkt->pts - pts, src, fmt_ctx_->streams[get_audio_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+//		pkt->dts = av_rescale_q_rnd(pkt->dts - pts, src, fmt_ctx_->streams[get_audio_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+//		pkt->duration = av_rescale_q_rnd(pkt->duration, src, fmt_ctx_->streams[get_audio_index()]->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+//	}
+//	pkt->pos = -1;
+//	return 0;
+//}
 
 int AVMuxer::SetAudioTimebase(AVRational* src)
 {

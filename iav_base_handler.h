@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <mutex>
+#include <functional>
 
 #include "av_data_tools.h"
 
@@ -41,7 +42,7 @@ public:
 	virtual void Handle(AVHandlerPackage* package) = 0;
 
 	void SetNextHandler(IAVBaseHandler* node);
-
+	void SetCallbackFunction(std::function<void(uint8_t*, int32_t)> fun);
 protected:
 	virtual void Loop() = 0;
 	IAVBaseHandler* GetNextHandler();
@@ -50,6 +51,8 @@ protected:
 protected:
 	std::mutex mtx_;
 	std::thread worker_;
+	std::function<void(uint8_t*, int32_t)> callable_object_ = nullptr;
+
 	IAVBaseHandler* next_ = nullptr;
 
 	bool is_exit_ = true;

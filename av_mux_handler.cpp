@@ -22,18 +22,18 @@ int AVMuxHandler::Open(std::string url, AVCodecParameters* v_param, AVRational* 
 		cout << "Muxer handler Open failed : url error" << endl;
 		return -1;
 	}
-	AVMuxerType mux_type;
+	AVProtocolType protocol_type;
 	if (strstr(url.c_str(), "rtsp"))
 	{
-		mux_type = AVMuxerType::AV_MUXER_TYPE_RTSP;
+		protocol_type = AVProtocolType::AV_PROTOCOL_TYPE_RTSP;
 	}
 	else if (strstr(url.c_str(), "rtmp"))
 	{
-		mux_type = AVMuxerType::AV_MUXER_TYPE_RTMP;
+		protocol_type = AVProtocolType::AV_PROTOCOL_TYPE_RTMP;
 	}
 	else
 	{
-		mux_type = AVMuxerType::AV_MUXER_TYPE_FILE;
+		protocol_type = AVProtocolType::AV_PROTOCOL_TYPE_FILE;
 	}
 
 	unique_lock<mutex> lock(mtx_);
@@ -52,7 +52,7 @@ int AVMuxHandler::Open(std::string url, AVCodecParameters* v_param, AVRational* 
 	audio_param_->para = a_param;
 	video_param_->para = v_param;
 
-	AVFormatContext* fmt_ctx = muxer_.OpenContext(url.c_str(), video_param_->para, audio_param_->para, mux_type);
+	AVFormatContext* fmt_ctx = muxer_.OpenContext(url.c_str(), video_param_->para, audio_param_->para, protocol_type);
 	if (!fmt_ctx)
 	{
 		cout << "mux handler open failed : open context return null context" << endl;
@@ -65,11 +65,12 @@ int AVMuxHandler::Open(std::string url, AVCodecParameters* v_param, AVRational* 
 		cout << "mux handler open failed : video stream not found " << endl;
 		return -1;
 	}
-	//memcpy(fmt_ctx->streams[video_stream_index]->codecpar->extradata, extra_data, extra_data_size);
-	//fmt_ctx->streams[video_stream_index]->codecpar->extradata_size = extra_data_size;
+	memcpy(fmt_ctx->streams[video_stream_index]->codecpar->extradata, extra_data, extra_data_size);
+	fmt_ctx->streams[video_stream_index]->codecpar->extradata_size = extra_data_size;
 	av_dump_format(fmt_ctx, video_stream_index, url_.c_str(), 1);
 
 	muxer_.SetFormatContext(fmt_ctx);
+	muxer_.SetProtocolType(protocol_type);
 
 	if (!a_timebase && !v_timebase)
 	{

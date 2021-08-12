@@ -51,7 +51,7 @@ CaptureWidget::CaptureWidget(QWidget *parent)
 		qDebug() << "encode_th_->Open(inWidth, inHeight) failed";
 		return;
 	}
-	auto param = encode_handler_->CopyCodecParameters();
+	encode_handler_->SetEncodePause(true);
 
 	mux_handler_ = new AVMuxHandler();
 
@@ -118,23 +118,81 @@ void CaptureWidget::OnParametersSet(CaptureWidgetParameters param)
 	url_ = param.url_;
 }
 
+//void CaptureWidget::OnSignalPush(CaptureWidgetParameters param)
+//{
+//	output_width_ = param.output_width_;
+//	output_height_ = param.output_height_;
+//	url_ = param.url_;
+//	if (!encode_handler_ || !mux_handler_)
+//	{
+//		qDebug() << "start push failed : (!encode_handler_ || !mux_handler_)";
+//		return;
+//	}
+//	encode_handler_->SetEncodePause(false);
+//	auto codec_param = encode_handler_->CopyCodecParameters();
+//	int extra_data_size = 0;
+//	uint8_t extra_data[4096] = { 0 };
+//	int ret = encode_handler_->CopyCodecExtraData(extra_data,extra_data_size);
+//
+//	ret = mux_handler_->Open(url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data,extra_data_size);
+//	if (ret != 0)
+//	{
+//		qDebug() << "mux_handler_ open failed";
+//		return;
+//	}
+//
+//	mux_handler_->Start();
+//}
+
 void CaptureWidget::OnSignalPush(CaptureWidgetParameters param)
 {
+	int ret = -1;
 	output_width_ = param.output_width_;
 	output_height_ = param.output_height_;
 	url_ = param.url_;
+	view_->InitView(output_width_, output_height_, PixFormat::PIX_FORMAT_YUV420P, (void*)this->winId());
+	if (output_width_ > this->width() || output_height_ > this->height())
+	{
+		view_->ScaleView(this->width(), this->height());
+	}
+	else
+	{
+		view_->ScaleView(output_width_, output_height_);
+	}
+
 	if (!encode_handler_ || !mux_handler_)
 	{
-		qDebug() << "start push faield : (!encode_handler_ || !mux_handler_)";
+		qDebug() << "start push failed : (!encode_handler_ || !mux_handler_)";
 		return;
 	}
+
+	ret = capture_handler_->InitScale(output_width_, output_height_);
+	if (!ret)
+	{
+		qDebug() << "capture_th_->InitScale(inWidth, inHeight) failed";
+		return;
+	}
+
+	encode_handler_->Stop();
+	ret = encode_handler_->EncoderInit(output_width_, output_height_);
+	if (ret != 0)
+	{
+		qDebug() << "encode_handler_->EncoderInit() failed";
+		return;
+	}
+	encode_handler_->Start();
+
 	encode_handler_->SetEncodePause(false);
 	auto codec_param = encode_handler_->CopyCodecParameters();
 	int extra_data_size = 0;
 	uint8_t extra_data[4096] = { 0 };
-	int ret = encode_handler_->CopyCodecExtraData(extra_data,extra_data_size);
+	ret = encode_handler_->CopyCodecExtraData(extra_data, extra_data_size);
+	//for (int i = 0; i < extra_data_size; i++)
+	//{
+	//	cout << hex << extra_data[i] << flush;
+	//}
 
-	ret = mux_handler_->Open(url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data,extra_data_size);
+	ret = mux_handler_->Open(url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
 	if (ret != 0)
 	{
 		qDebug() << "mux_handler_ open failed";

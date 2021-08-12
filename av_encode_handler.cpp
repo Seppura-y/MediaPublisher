@@ -47,11 +47,11 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height)
 
 	codec_ctx->max_b_frames = 0;
 	codec_ctx->gop_size = 50;
-	codec_ctx->bit_rate = 300000;
+	codec_ctx->bit_rate = 20 * 1024 * 8;
 
 	encoder_.SetCodecContext(codec_ctx);
 
-	int isok = encoder_.SetOption("preset", "slow");
+	int isok = encoder_.SetOption("preset", "ultrafast");
 	if (isok != 0)
 	{
 		return -1;

@@ -198,3 +198,9 @@ std::shared_ptr<AVParamWarpper> AVFormatBase::CopyAudioParameters()
 	*shr_ptr->time_base = fmt_ctx_->streams[audio_index_]->time_base;
 	return shr_ptr;
 }
+
+void AVFormatBase::SetProtocolType(AVProtocolType type)
+{
+	unique_lock<mutex> lock(mtx_);
+	protocol_type_ = type;
+}

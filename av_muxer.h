@@ -3,18 +3,10 @@
 
 #include "av_format_base.h"
 
-
-
-enum class AVMuxerType 
-{
-	AV_MUXER_TYPE_FILE,
-	AV_MUXER_TYPE_RTMP,
-	AV_MUXER_TYPE_RTSP
-};
 class AVMuxer : public AVFormatBase
 {
 public:
-	static AVFormatContext* OpenContext(const char* url, AVCodecParameters* vparam,AVCodecParameters* aparam,AVMuxerType type);
+	static AVFormatContext* OpenContext(const char* url, AVCodecParameters* vparam,AVCodecParameters* aparam,AVProtocolType type);
 	int WriteHeader();
 	int WriteTrailer();
 	int WriteData(AVPacket* pkt);
@@ -31,6 +23,7 @@ private:
 	long long a_begin_pts_ = -1;
 	AVRational* v_src_timebase_ = nullptr;
 	AVRational* a_src_timebase_ = nullptr;
+
 };
 
 #endif
