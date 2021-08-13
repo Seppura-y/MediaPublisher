@@ -156,14 +156,36 @@ void AVEncodeHandler::Loop()
 			continue;
 		}
 
-		pkg->av_type_ = AVHandlerPackageAVType::AVHANDLER_PACKAGE_AV_TYPE_VIDEO;
-		pkg->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
-		pkg->payload_.packet_ = av_packet_alloc();
-		av_packet_move_ref(pkg->payload_.packet_, pkt);
-		//av_packet_ref(pkg->payload_.packet_, pkt);
-		GetNextHandler()->Handle(pkg);
-
-		av_packet_unref(pkg->payload_.packet_);
+		if (is_callback_enable_)
+		{
+			if (callable_object_)
+			{
+				callable_object_(pkt);
+				av_packet_unref(pkt);
+			}
+			else
+			{
+				continue;
+			}
+		}
+		else
+		{
+			if (GetNextHandler())
+			{
+				pkg->av_type_ = AVHandlerPackageAVType::AVHANDLER_PACKAGE_AV_TYPE_VIDEO;
+				pkg->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
+				pkg->payload_.packet_ = av_packet_alloc();
+				av_packet_move_ref(pkg->payload_.packet_, pkt);
+				//av_packet_ref(pkg->payload_.packet_, pkt);
+				GetNextHandler()->Handle(pkg);
+				av_packet_unref(pkg->payload_.packet_);
+			}
+			else
+			{
+				av_packet_unref(pkt);
+				continue;
+			}
+		}
 	}
 	av_packet_free(&pkt);
 	delete pkg;
@@ -177,4 +199,28 @@ int AVEncodeHandler::CopyCodecExtraData(uint8_t* buffer, int& size)
 shared_ptr<AVParamWarpper> AVEncodeHandler::CopyCodecParameters()
 {
 	return encoder_.CopyCodecParam();
+}
+
+uint8_t* AVEncodeHandler::GetSpsData()
+{
+	unique_lock<mutex> lock(mtx_);
+	return encoder_.GetSpsData();
+}
+
+uint8_t* AVEncodeHandler::GetPpsData()
+{
+	unique_lock<mutex> lock(mtx_);
+	return encoder_.GetPpsData();
+}
+
+int AVEncodeHandler::GetSpsSize()
+{
+	unique_lock<mutex> lock(mtx_);
+	return encoder_.GetSpsSize();
+}
+
+int AVEncodeHandler::GetPpsSize()
+{
+	unique_lock<mutex> lock(mtx_);
+	return encoder_.GetPpsSize();
 }

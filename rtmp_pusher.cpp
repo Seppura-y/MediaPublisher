@@ -55,11 +55,11 @@ RtmpPusher::RtmpPusher(int max_queue_size) : BaseHandler(max_queue_size)
 
 }
 
-void RtmpPusher::Handle(int what, MessageBase* msg)
+void RtmpPusher::Handle(MessagePayloadType what, MessageBase* msg)
 {
 	switch (what)
 	{
-		case FLV_TAG_TYPE_ONMETADATA:
+		case MessagePayloadType::MESSAGE_PAYLOAD_TYPE_METADATA:
 		{
 			if (!is_first_metadata_sent_)
 			{
@@ -75,7 +75,7 @@ void RtmpPusher::Handle(int what, MessageBase* msg)
 			delete meta;
 			break;
 		}
-		case FLV_TAG_TYPE_AAC_SEQUENCE_HEADER:
+		case MessagePayloadType::MESSAGE_PAYLOAD_TYPE_ADTS_HEADER:
 		{
 			if (!is_first_audio_seq_sent_)
 			{
@@ -90,7 +90,7 @@ void RtmpPusher::Handle(int what, MessageBase* msg)
 			delete aseq;
 			break;
 		}
-		case FLV_TAG_TYPE_AAC_RAW:
+		case MessagePayloadType::MESSAGE_PAYLOAD_TYPE_AUDIO_RAW:
 		{
 			if (!is_first_audio_raw_sent_)
 			{
@@ -105,7 +105,7 @@ void RtmpPusher::Handle(int what, MessageBase* msg)
 			delete araw;
 			break;
 		}
-		case FLV_TAG_TYPE_AVC_SEQUENCE_HEADER:
+		case MessagePayloadType::MESSAGE_PAYLOAD_TYPE_VIDEO_SEQ:
 		{
 			if (!is_first_video_seq_sent_)
 			{
@@ -120,7 +120,7 @@ void RtmpPusher::Handle(int what, MessageBase* msg)
 			delete vseq;
 			break;
 		}
-		case FLV_TAG_TYPE_AVC_RAW:
+		case MessagePayloadType::MESSAGE_PAYLOAD_TYPE_NALU:
 		{
 			if (!is_first_video_raw_sent_)
 			{
@@ -157,7 +157,7 @@ void RtmpPusher::AddMsg(MessagePayload* msg, bool flush)
 		while (message_queue_.size() > 0)
 		{
 			MessagePayload* obj = message_queue_.front();
-			if (obj->what == FLV_TAG_TYPE_AVC_RAW && ((NALUStruct*)(obj->message))->type_ == NALU_TYPE_IDR)
+			if (obj->what == MessagePayloadType::MESSAGE_PAYLOAD_TYPE_NALU && ((NALUStruct*)(obj->message))->type_ == NALU_TYPE_IDR)
 			{
 				break;
 			}

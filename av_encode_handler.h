@@ -8,7 +8,12 @@ public:
 	virtual void Handle(AVHandlerPackage* pkg) override;
 	void SetEncodePause(bool status);
 	std::shared_ptr<AVParamWarpper> CopyCodecParameters();
+
 	int CopyCodecExtraData(uint8_t* buffer, int& size);
+	uint8_t* GetSpsData();
+	uint8_t* GetPpsData();
+	int GetSpsSize();
+	int GetPpsSize();
 protected:
 	virtual void Loop() override;
 private:

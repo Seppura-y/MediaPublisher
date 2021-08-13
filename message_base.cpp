@@ -8,7 +8,7 @@ NALUStruct::NALUStruct(int size)
 	type_ = NALU_TYPE_UNDEFINE_1;
 	data_ = (uint8_t*)malloc(size_ * sizeof(uint8_t));
 }
-NALUStruct::NALUStruct(const char* buf, int size)
+NALUStruct::NALUStruct(uint8_t* buf, int size)
 {
 	size_ = size;
 	type_ = (NALUType)(buf[4] & 0x1f);

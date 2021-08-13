@@ -14,7 +14,7 @@ class BaseHandler
 public:
 	BaseHandler(int max_queue_size);
 	virtual ~BaseHandler();
-	void Post(int what,void* data,bool flush);
+	void Post(MessagePayloadType what,void* data,bool flush);
 	void Stop();
 
 protected:
@@ -27,7 +27,7 @@ protected:
 
 private:
 	virtual void AddMsg(MessagePayload* obj, bool flush);
-	virtual void Handle(int what, MessageBase* obj);
+	virtual void Handle(MessagePayloadType what, MessageBase* obj);
 	static void Trampoline(void* p);
 	void Loop();
 };

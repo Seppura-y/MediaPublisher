@@ -77,7 +77,7 @@ void AVPacketDataList::Push(AVPacket* packet)
 		{
 			av_packet_free(&pkt_list_.front());
 			pkt_list_.pop_front();
-			return;
+			//return;
 		}
 		while (!pkt_list_.empty())
 		{

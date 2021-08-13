@@ -118,6 +118,6 @@ void AVScreenCapHandler::setOutputSize(int width, int height)
 
 void AVScreenCapHandler::Handle(AVHandlerPackage* pkg)
 {
-	//nothing to do 
+	//do nothing 
 	return;
 }

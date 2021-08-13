@@ -3,13 +3,14 @@
 #include <QStyleOption>
 #include <QPainter>
 #include <QDebug>
-
 #include <thread>
 
 extern"C"
 {
 #include <libavcodec/avcodec.h>
 }
+
+#include "message_base.h"
 
 #ifdef _WIN32
 #pragma comment(lib,"avcodec.lib")
@@ -20,6 +21,7 @@ using namespace std;
 CaptureWidget::CaptureWidget(QWidget *parent)
 	: QWidget(parent)
 {
+	view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
 	this->setStyleSheet("background-color: rgb(55,55,55)");
 	view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
 	view_->InitView(this->width(), this->height(), PixFormat::PIX_FORMAT_YUV420P, (void*)this->winId());
@@ -51,18 +53,27 @@ CaptureWidget::CaptureWidget(QWidget *parent)
 		qDebug() << "encode_th_->Open(inWidth, inHeight) failed";
 		return;
 	}
-	encode_handler_->SetEncodePause(true);
-
-	mux_handler_ = new AVMuxHandler();
-
-	encode_handler_->SetNextHandler(mux_handler_);
 	capture_handler_->SetNextHandler(encode_handler_);
 
+	encode_handler_->SetPushCallbackFunction(std::bind(&CaptureWidget::VideoEncodeCallback,this,std::placeholders::_1));
+	encode_handler_->SetCallbackEnable(true);
 	encode_handler_->Start();
 	this_thread::sleep_for(50ms);
 
 	capture_handler_->Start();
 	startTimer(1);
+
+	//encode_handler_->SetEncodePause(true);
+	//mux_handler_ = new AVMuxHandler();
+
+	//encode_handler_->SetNextHandler(mux_handler_);
+	//capture_handler_->SetNextHandler(encode_handler_);
+
+	//encode_handler_->Start();
+	//this_thread::sleep_for(50ms);
+
+	//capture_handler_->Start();
+	//startTimer(1);
 }
 
 CaptureWidget::~CaptureWidget()
@@ -111,41 +122,94 @@ void CaptureWidget::DrawFrame()
 	av_frame_free(&frame); //If the frame is reference counted, it will be unreferenced first.
 }
 
-void CaptureWidget::OnParametersSet(CaptureWidgetParameters param)
+void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 {
 	output_width_ = param.output_width_;
 	output_height_ = param.output_height_;
 	url_ = param.url_;
+	bool ret = false;
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//reset view according to output dimension
+	if (!view_)
+	{
+		view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
+	}
+	view_->InitView(output_width_, output_height_, PixFormat::PIX_FORMAT_YUV420P, (void*)this->winId());
+	if (output_width_ > this->width() || output_height_ > this->height())
+	{
+		view_->ScaleView(this->width(), this->height());
+	}
+	else
+	{
+		view_->ScaleView(output_width_, output_height_);
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//reset caputure handler  according to output dimension
+	if (!capture_handler_)
+	{
+		capture_handler_ = new AVScreenCapHandler();
+		ret = capture_handler_->Init();
+		if (!ret)
+		{
+			qDebug() << "capture_th_->Init() failed";
+			return;
+		}
+	}
+	ret = capture_handler_->InitScale(output_width_, output_height_);
+	if (!ret)
+	{
+		qDebug() << "capture_th_->InitScale(inWidth, inHeight) failed";
+		return;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//reset encode handler according to output dimension
+	if (!encode_handler_)
+	{
+		encode_handler_ = new AVEncodeHandler();
+	}
+	else
+	{
+		encode_handler_->Stop();
+	}
+	ret = encode_handler_->EncoderInit(output_width_, output_height_);
+	if (ret != 0)
+	{
+		qDebug() << "encode_th_->Open(inWidth, inHeight) failed";
+		return;
+	}
+	encode_handler_->SetEncodePause(true);
+	capture_handler_->SetNextHandler(encode_handler_);
+
+	encode_handler_->SetPushCallbackFunction(std::bind(&CaptureWidget::VideoEncodeCallback, this, std::placeholders::_1));
+	encode_handler_->SetCallbackEnable(true);
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//reset mux handler according to encode parameters
+	auto codec_param = encode_handler_->CopyCodecParameters();
+	int extra_data_size = 0;
+	uint8_t extra_data[4096] = { 0 };
+	ret = encode_handler_->CopyCodecExtraData(extra_data, extra_data_size);
+
+	ret = mux_handler_->Open(url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
+	if (ret != 0)
+	{
+		qDebug() << "mux_handler_ open failed";
+		return;
+	}
+
 }
 
-//void CaptureWidget::OnSignalPush(CaptureWidgetParameters param)
-//{
-//	output_width_ = param.output_width_;
-//	output_height_ = param.output_height_;
-//	url_ = param.url_;
-//	if (!encode_handler_ || !mux_handler_)
-//	{
-//		qDebug() << "start push failed : (!encode_handler_ || !mux_handler_)";
-//		return;
-//	}
-//	encode_handler_->SetEncodePause(false);
-//	auto codec_param = encode_handler_->CopyCodecParameters();
-//	int extra_data_size = 0;
-//	uint8_t extra_data[4096] = { 0 };
-//	int ret = encode_handler_->CopyCodecExtraData(extra_data,extra_data_size);
-//
-//	ret = mux_handler_->Open(url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data,extra_data_size);
-//	if (ret != 0)
-//	{
-//		qDebug() << "mux_handler_ open failed";
-//		return;
-//	}
-//
-//	mux_handler_->Start();
-//}
 
-void CaptureWidget::OnSignalPush(CaptureWidgetParameters param)
+void CaptureWidget::OnStartPush(CaptureWidgetParameters param)
 {
+	encode_handler_->Start();
+	this_thread::sleep_for(50ms);
+
+	capture_handler_->Start();
+	startTimer(1);
+
 	int ret = -1;
 	output_width_ = param.output_width_;
 	output_height_ = param.output_height_;
@@ -187,10 +251,6 @@ void CaptureWidget::OnSignalPush(CaptureWidgetParameters param)
 	int extra_data_size = 0;
 	uint8_t extra_data[4096] = { 0 };
 	ret = encode_handler_->CopyCodecExtraData(extra_data, extra_data_size);
-	//for (int i = 0; i < extra_data_size; i++)
-	//{
-	//	cout << hex << extra_data[i] << flush;
-	//}
 
 	ret = mux_handler_->Open(url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
 	if (ret != 0)
@@ -202,7 +262,7 @@ void CaptureWidget::OnSignalPush(CaptureWidgetParameters param)
 	mux_handler_->Start();
 }
 
-void CaptureWidget::OnSignalStop()
+void CaptureWidget::OnStopPush()
 {
 	if (!encode_handler_ || !mux_handler_)
 	{
@@ -210,4 +270,54 @@ void CaptureWidget::OnSignalStop()
 	}
 	encode_handler_->SetEncodePause(true);
 	mux_handler_->Stop();
+}
+
+
+void CaptureWidget::VideoEncodeCallback(AVPacket* v_pkt)
+{
+	if (IsVideoSeqHeaderNeeded())
+	{
+		VideoSequenceHeaderMessage* video_seq_header = new VideoSequenceHeaderMessage(
+			encode_handler_->GetSpsData(),
+			encode_handler_->GetSpsSize(),
+			encode_handler_->GetPpsData(),
+			encode_handler_->GetPpsSize()
+		);
+		//video_seq_header->width_ = output_width_;
+		//video_seq_header->height_ = output_height_;
+
+		rtmp_pusher_->Post(MessagePayloadType::MESSAGE_PAYLOAD_TYPE_VIDEO_SEQ,
+			video_seq_header, false);
+
+		SetVideoSeqHeaderNeeded(false);
+	}
+
+	NALUStruct* nalu = new NALUStruct(v_pkt->data, v_pkt->size);
+	rtmp_pusher_->Post(MessagePayloadType::MESSAGE_PAYLOAD_TYPE_NALU,
+		nalu, false);
+}
+
+void CaptureWidget::AudioEncodeCallback(AVPacket* a_pkt)
+{
+
+}
+
+bool CaptureWidget::IsVideoSeqHeaderNeeded()
+{
+	return is_video_seq_header_needed_;
+}
+
+bool CaptureWidget::IsAudioSeqHeaderNeeded()
+{
+	return is_audio_seq_header_needed_;
+}
+
+void CaptureWidget::SetVideoSeqHeaderNeeded(bool status)
+{
+	is_video_seq_header_needed_ = status;
+}
+
+void CaptureWidget::SetAudioSeqHeaderNeeded(bool status)
+{
+	is_audio_seq_header_needed_ = status;
 }

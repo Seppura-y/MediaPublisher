@@ -43,7 +43,13 @@ IAVBaseHandler* IAVBaseHandler::GetNextHandler()
 	return next_;
 }
 
-void IAVBaseHandler::SetCallbackFunction(std::function<void(uint8_t*, int32_t)> fun)
+void IAVBaseHandler::SetPushCallbackFunction(std::function<void(AVPacket*)> fun)
 {
 	callable_object_ = fun;
+}
+
+void IAVBaseHandler::SetCallbackEnable(bool status)
+{
+	unique_lock<mutex> lock(mtx_);
+	is_callback_enable_ = status;
 }

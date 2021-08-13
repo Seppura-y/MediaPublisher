@@ -7,6 +7,8 @@
 
 #include "av_data_tools.h"
 
+struct AVPacket;
+
 enum AVHandlerPackageType
 {
 	AVHANDLER_PACKAGE_TYPE_PACKET,
@@ -42,7 +44,8 @@ public:
 	virtual void Handle(AVHandlerPackage* package) = 0;
 
 	void SetNextHandler(IAVBaseHandler* node);
-	void SetCallbackFunction(std::function<void(uint8_t*, int32_t)> fun);
+	void SetPushCallbackFunction(std::function<void(AVPacket*)> fun);
+	void SetCallbackEnable(bool status);
 protected:
 	virtual void Loop() = 0;
 	IAVBaseHandler* GetNextHandler();
@@ -51,8 +54,8 @@ protected:
 protected:
 	std::mutex mtx_;
 	std::thread worker_;
-	std::function<void(uint8_t*, int32_t)> callable_object_ = nullptr;
-
+	std::function<void(AVPacket*)> callable_object_ = nullptr;
+	bool is_callback_enable_ = false;
 	IAVBaseHandler* next_ = nullptr;
 
 	bool is_exit_ = true;

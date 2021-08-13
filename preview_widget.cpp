@@ -42,14 +42,16 @@ void PreviewWidget::ConnectSigAndSlots()
 {
 	QObject::connect(pb_push_, &QPushButton::clicked, this, &PreviewWidget::OnPbPushClicked);
 	QObject::connect(pb_stop_, &QPushButton::clicked, this, &PreviewWidget::OnPbStopClicked);
+	QObject::connect(pb_reset_, &QPushButton::clicked, this, &PreviewWidget::OnPbResetClicked);
 
-	QObject::connect(this, &PreviewWidget::SigStartPush, capture_widget_, &CaptureWidget::OnSignalPush);
-	QObject::connect(this, &PreviewWidget::SigStopPush, capture_widget_, &CaptureWidget::OnSignalStop);
+	QObject::connect(this, &PreviewWidget::SigStartPush, capture_widget_, &CaptureWidget::OnStartPush);
+	QObject::connect(this, &PreviewWidget::SigStopPush, capture_widget_, &CaptureWidget::OnStopPush);
+	QObject::connect(this, &PreviewWidget::SigResetParam, capture_widget_, &CaptureWidget::OnResetParam);
+
 }
 
 void PreviewWidget::OnPbPushClicked()
 {
-	qDebug() << "OnPbPushClicked";
 	struct CaptureWidgetParameters param;
 	param.output_width_ = le_width_->text().toInt();
 	param.output_height_ = le_height_->text().toInt();

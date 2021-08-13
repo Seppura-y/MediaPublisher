@@ -18,7 +18,7 @@ protected:
 	int SendVideoRawData(NALUStruct* nalu);
 	bool GetAudioSpecificConfig(uint8_t* data, uint8_t profile, uint8_t channels, uint32_t sample_rate);
 private:
-	virtual void Handle(int what,MessageBase* msg) override;
+	virtual void Handle(MessagePayloadType what,MessageBase* msg) override;
 	virtual void AddMsg(MessagePayload* obj,bool flush) override;
 
 	enum

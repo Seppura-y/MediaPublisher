@@ -51,7 +51,7 @@ void BaseHandler::Loop()
 	}
 }
 
-void BaseHandler::Post(int what,void* data,bool flush)
+void BaseHandler::Post(MessagePayloadType what,void* data,bool flush)
 {
 	MessagePayload* msg = new MessagePayload();
 	msg->what = what;
@@ -65,7 +65,7 @@ void BaseHandler::Stop()
 	if (!is_exit_)
 	{
 		MessagePayload* msg = new MessagePayload();
-		msg->what = 0;
+		msg->what = MessagePayloadType::MESSAGE_PAYLOAD_TYPE_UNDEFINE;
 		msg->message = nullptr;
 		msg->is_exit = true;
 		AddMsg(msg, true);
@@ -100,13 +100,13 @@ void BaseHandler::AddMsg(MessagePayload* obj, bool flush)
 	message_queue_.push_back(obj);
 	mtx_.unlock();
 
-	if (1 == obj->what)
+	if (MessagePayloadType::MESSAGE_PAYLOAD_TYPE_METADATA == obj->what)
 		cout << "metadata" << endl;
 	msg_avaliable_->Post(1);
 
 }
 
-void BaseHandler::Handle(int what,MessageBase* obj)
+void BaseHandler::Handle(MessagePayloadType what,MessageBase* obj)
 {
 	cout << "base handle" << endl;
 }

@@ -6,6 +6,15 @@
 #include <iostream>
 #include <stdint.h>
 
+enum class MessagePayloadType
+{
+	MESSAGE_PAYLOAD_TYPE_UNDEFINE = -1,
+	MESSAGE_PAYLOAD_TYPE_METADATA,
+	MESSAGE_PAYLOAD_TYPE_NALU,
+	MESSAGE_PAYLOAD_TYPE_VIDEO_SEQ,
+	MESSAGE_PAYLOAD_TYPE_ADTS_HEADER,
+	MESSAGE_PAYLOAD_TYPE_AUDIO_RAW
+};
 
 class MessageBase
 {
@@ -16,7 +25,7 @@ public:
 
 typedef struct MessagePayload
 {
-	int what;
+	MessagePayloadType what;
 	MessageBase* message;
 	bool is_exit;
 } MessagePayload;
@@ -25,7 +34,7 @@ class NALUStruct : public MessageBase
 {
 public:
 	NALUStruct(int size);
-	NALUStruct(const char* buf, int size);
+	NALUStruct(uint8_t* buf, int size);
 	~NALUStruct();
 
 	NALUType type_ = NALU_TYPE_UNDEFINE_1;
@@ -86,6 +95,13 @@ public:
 	{
 		return pps_size_;
 	}
+
+//public:
+//	unsigned int width_ = -1;
+//	unsigned int height_ = -1;
+//	unsigned int frame_rate_ = -1;
+//	unsigned int bit_per_sec_ = -1;
+//	int64_t pts_ = -1;
 private:
 	uint8_t* sps_ = nullptr;
 	uint8_t* pps_ = nullptr;

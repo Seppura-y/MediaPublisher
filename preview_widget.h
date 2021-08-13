@@ -22,13 +22,13 @@ public:
 	PreviewWidget(QWidget *parent = Q_NULLPTR);
 	~PreviewWidget();
 
-
 protected:
 	void InitUI();
 	void ConnectSigAndSlots();
 signals:
 	void SigStartPush(CaptureWidgetParameters);
 	void SigStopPush();
+	void SigResetParam(CaptureWidgetParameters);
 protected slots:
 
 	void OnPbPushClicked();

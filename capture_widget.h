@@ -7,6 +7,7 @@
 #include "av_encode_handler.h"
 #include "av_mux_handler.h"
 #include "sdl_view.h"
+#include "rtmp_pusher.h"
 
 struct CaptureWidgetParameters
 {
@@ -14,6 +15,7 @@ struct CaptureWidgetParameters
 	int output_height_;
 	QString url_;
 };
+struct AVPacket;
 
 class CaptureWidget : public QWidget
 {
@@ -24,15 +26,23 @@ public:
 	~CaptureWidget();
 
 public slots:
-	void OnSignalPush(CaptureWidgetParameters);
-	void OnParametersSet(CaptureWidgetParameters);
-	void OnSignalStop();
+	void OnStartPush(CaptureWidgetParameters);
+	void OnResetParam(CaptureWidgetParameters);
+	void OnStopPush();
+
+	bool IsVideoSeqHeaderNeeded();
+	bool IsAudioSeqHeaderNeeded();
+	void SetVideoSeqHeaderNeeded(bool status);
+	void SetAudioSeqHeaderNeeded(bool status);
 protected:
 	void paintEvent(QPaintEvent* ev) override;
 	void timerEvent(QTimerEvent* ev)override;
 	void resizeEvent(QResizeEvent* ev)override;
 
 	void DrawFrame();
+
+	void VideoEncodeCallback(AVPacket* v_pkt);
+	void AudioEncodeCallback(AVPacket* a_pkt);
 private:
 	int output_width_ = -1;
 	int output_height_ = -1;
@@ -43,4 +53,7 @@ private:
 	AVEncodeHandler* encode_handler_ = nullptr;
 	AVScreenCapHandler* capture_handler_ = nullptr;
 
+	bool is_video_seq_header_needed_ = true;
+	bool is_audio_seq_header_needed_ = true;
+	RtmpPusher* rtmp_pusher_ = nullptr;
 };
