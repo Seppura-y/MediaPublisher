@@ -8,7 +8,7 @@
 class RtmpPusher : public RtmpBase, public BaseHandler
 {
 public:
-	RtmpPusher(int max_queue_size = 30);
+	RtmpPusher(RtmpBaseType type,std::string url ,int max_queue_size = 30);
 protected:
 	int SendPacket(unsigned int type,unsigned char* data,unsigned int size,unsigned int timestamp);
 	int SendMetaData(FlvOnMetaData* data);

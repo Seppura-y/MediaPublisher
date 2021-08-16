@@ -74,27 +74,6 @@ void AVCodecBase::SetCodecContext(AVCodecContext* codec_ctx)
 		avcodec_free_context(&codec_ctx_);
 	}
 	codec_ctx_ = codec_ctx;
-	if (codec_ctx_ && codec_ctx_->codec_type == AVMEDIA_TYPE_VIDEO && codec_ctx_->extradata && codec_ctx_->extradata_size > 0)
-	{
-		int data_size = codec_ctx_->extradata_size;
-		uint8_t* data = codec_ctx_->extradata;
-		uint8_t* sps;
-		uint8_t* pps;
-
-		for (int i = 4; i < data_size; i++)
-		{
-			if (data[i] == 0x00 && data[i + 1] == 0x00 && data[i + 2] == 0x00 && data[i + 3] == 0x01)
-			{
-				sps_size_ = i - 4;
-				pps_size_ =  data_size - i -4;
-				pps = &data[i + 4];
-				break;
-			}
-		}
-		sps = &data[4];
-		sps_data_.append((const char*)sps, sps_size_);
-		pps_data_.append((const char*)pps, pps_size_);
-	}
 }
 
 int AVCodecBase::OpenContext()
@@ -110,6 +89,27 @@ int AVCodecBase::OpenContext()
 	{
 		cout << "avcodec_open2 failed" << endl;
 		return -1;
+	}
+	if (codec_ctx_ && codec_ctx_->codec_type == AVMEDIA_TYPE_VIDEO && codec_ctx_->extradata && codec_ctx_->extradata_size > 0)
+	{
+		int data_size = codec_ctx_->extradata_size;
+		uint8_t* data = codec_ctx_->extradata;
+		uint8_t* sps;
+		uint8_t* pps;
+
+		for (int i = 4; i < data_size; i++)
+		{
+			if (data[i] == 0x00 && data[i + 1] == 0x00 && data[i + 2] == 0x00 && data[i + 3] == 0x01)
+			{
+				sps_size_ = i - 4;
+				pps_size_ = data_size - i - 4;
+				pps = &data[i + 4];
+				break;
+			}
+		}
+		sps = &data[4];
+		sps_data_.append((const char*)sps, sps_size_);
+		pps_data_.append((const char*)pps, pps_size_);
 	}
 	return 0;
 }

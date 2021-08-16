@@ -13,20 +13,20 @@ void IAVBaseHandler::Start()
 	is_exit_ = false;
 
 	worker_ = thread(&IAVBaseHandler::Loop, this);
-	cout << "thread %d : start" << endl;
+	cout << "thread "<< this_thread::get_id() <<" : start" << endl;
 }
 
 
 void IAVBaseHandler::Stop()
 {
 	//unique_lock<mutex> lock(mtx_);
-	cout << "thread %d : request stop" << endl;
+	cout << "thread " << this_thread::get_id() << " : request stop" << endl;
 	is_exit_ = true;
 	if (worker_.joinable())
 	{
 		worker_.join();
 	}
-	cout << "thread %d : stop" << endl;
+	cout << "thread " << this_thread::get_id() << " : stop" << endl;
 }
 
 

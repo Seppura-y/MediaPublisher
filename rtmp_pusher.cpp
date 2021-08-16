@@ -50,13 +50,21 @@ char* put_amf_double(char* dst, const double src)
 	return dst + 8;
 }
 
-RtmpPusher::RtmpPusher(int max_queue_size) : BaseHandler(max_queue_size)
+RtmpPusher::RtmpPusher(RtmpBaseType type, string url,int max_queue_size) : RtmpBase(type,url) ,BaseHandler(max_queue_size)
 {
 
 }
 
 void RtmpPusher::Handle(MessagePayloadType what, MessageBase* msg)
 {
+	if (!IsConnected())
+	{
+		if (!Connect())
+		{
+			cout << "rtmp pusher handle : connect failed" << endl;
+			return;
+		}
+	}
 	switch (what)
 	{
 		case MessagePayloadType::MESSAGE_PAYLOAD_TYPE_METADATA:

@@ -46,6 +46,8 @@ public:
 	void SetNextHandler(IAVBaseHandler* node);
 	void SetPushCallbackFunction(std::function<void(AVPacket*)> fun);
 	void SetCallbackEnable(bool status);
+
+	bool IsExit() { return is_exit_; };
 protected:
 	virtual void Loop() = 0;
 	IAVBaseHandler* GetNextHandler();

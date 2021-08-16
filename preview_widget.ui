@@ -22,28 +22,12 @@
      <property name="spacing">
       <number>1</number>
      </property>
-     <item row="1" column="2">
-      <widget class="QLabel" name="lb_width">
+     <item row="2" column="1">
+      <widget class="QLabel" name="lb_url">
        <property name="text">
-        <string>width:</string>
+        <string>url:</string>
        </property>
       </widget>
-     </item>
-     <item row="1" column="7">
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="2" column="2" colspan="6">
-      <widget class="QLineEdit" name="le_url"/>
      </item>
      <item row="2" column="0">
       <widget class="QPushButton" name="pb_reset">
@@ -64,36 +48,53 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QLabel" name="lb_url">
-       <property name="text">
-        <string>url:</string>
-       </property>
-      </widget>
+     <item row="1" column="8">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QRadioButton" name="rb_ffmpeg">
+         <property name="text">
+          <string>ffmpeg</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rb_librtmp">
+         <property name="text">
+          <string>librtmp</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
-     <item row="1" column="5">
-      <widget class="QLabel" name="lb_height">
-       <property name="text">
-        <string>height:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QPushButton" name="pb_push">
+     <item row="1" column="6">
+      <widget class="QLineEdit" name="le_height">
        <property name="minimumSize">
         <size>
-         <width>80</width>
+         <width>100</width>
          <height>25</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>80</width>
+         <width>100</width>
          <height>25</height>
         </size>
        </property>
-       <property name="text">
-        <string>push</string>
+      </widget>
+     </item>
+     <item row="1" column="4">
+      <widget class="QLineEdit" name="le_width">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>25</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -116,35 +117,65 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="4">
-      <widget class="QLineEdit" name="le_width">
+     <item row="1" column="9">
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="pb_push">
        <property name="minimumSize">
         <size>
-         <width>100</width>
+         <width>80</width>
          <height>25</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>100</width>
+         <width>80</width>
          <height>25</height>
         </size>
+       </property>
+       <property name="text">
+        <string>push</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="6">
-      <widget class="QLineEdit" name="le_height">
+     <item row="1" column="5">
+      <widget class="QLabel" name="lb_height">
+       <property name="text">
+        <string>height:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="lb_width">
+       <property name="text">
+        <string>width:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2" colspan="7">
+      <widget class="QLineEdit" name="le_url"/>
+     </item>
+     <item row="1" column="7">
+      <widget class="QLabel" name="label">
        <property name="minimumSize">
         <size>
-         <width>100</width>
+         <width>50</width>
          <height>25</height>
         </size>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>25</height>
-        </size>
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>

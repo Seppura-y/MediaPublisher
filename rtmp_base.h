@@ -4,7 +4,7 @@
 #include <iostream>
 #include "rtmp.h"
 
-enum RtmpBaseType
+enum class RtmpBaseType
 {
 	RTMP_BASE_TYPE_PUSH = 0,
 	RTMP_BASE_TYPE_PULL

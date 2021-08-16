@@ -1,5 +1,6 @@
 #include "preview_widget.h"
 #include <QDebug>
+#include <QRadioButton>
 
 PreviewWidget::PreviewWidget(QWidget *parent)
 	: QWidget(parent)
@@ -19,6 +20,7 @@ void PreviewWidget::InitUI()
 {
 	pb_push_ = ui.pb_push;
 	pb_stop_ = ui.pb_stop;
+	pb_reset_ = ui.pb_reset;
 	le_width_ = ui.le_width;
 	le_height_ = ui.le_height;
 	le_url_ = ui.le_url;
@@ -36,6 +38,8 @@ void PreviewWidget::InitUI()
 	url_ = le_url_->text();
 
 	capture_widget_->setAcceptDrops(false);
+
+	ui.rb_ffmpeg->setChecked(true);
 }
 
 void PreviewWidget::ConnectSigAndSlots()
@@ -48,18 +52,22 @@ void PreviewWidget::ConnectSigAndSlots()
 	QObject::connect(this, &PreviewWidget::SigStopPush, capture_widget_, &CaptureWidget::OnStopPush);
 	QObject::connect(this, &PreviewWidget::SigResetParam, capture_widget_, &CaptureWidget::OnResetParam);
 
+	QObject::connect(ui.rb_ffmpeg, &QRadioButton::clicked, this, &PreviewWidget::OnRbFfmpegClicked);
+	QObject::connect(ui.rb_librtmp, &QRadioButton::clicked, this, &PreviewWidget::OnRbLibrtmpClicked);
+	QObject::connect(this, &PreviewWidget::SigSetIsLibRtmpMethod, capture_widget_, &CaptureWidget::OnSetIsLibrtmpMethod);
 }
 
 void PreviewWidget::OnPbPushClicked()
 {
-	struct CaptureWidgetParameters param;
-	param.output_width_ = le_width_->text().toInt();
-	param.output_height_ = le_height_->text().toInt();
-	param.url_ = le_url_->text();
-	emit SigStartPush(param);
+	//struct CaptureWidgetParameters param;
+	//param.output_width_ = le_width_->text().toInt();
+	//param.output_height_ = le_height_->text().toInt();
+	//param.url_ = le_url_->text();
+	//emit SigStartPush(param);
 	pb_push_->setEnabled(false);
 	pb_stop_->setEnabled(true);
 
+	emit SigStartPush();
 }
 
 void PreviewWidget::OnPbStopClicked()
@@ -71,5 +79,20 @@ void PreviewWidget::OnPbStopClicked()
 
 void PreviewWidget::OnPbResetClicked()
 {
+	qDebug() << "on pb reset clicked";
+	struct CaptureWidgetParameters param;
+	param.output_width_ = le_width_->text().toInt();
+	param.output_height_ = le_height_->text().toInt();
+	param.url_ = le_url_->text();
+	emit SigResetParam(param);
+}
 
+void PreviewWidget::OnRbFfmpegClicked()
+{
+	emit SigSetIsLibRtmpMethod(false);
+}
+
+void PreviewWidget::OnRbLibrtmpClicked()
+{
+	emit SigSetIsLibRtmpMethod(true);
 }

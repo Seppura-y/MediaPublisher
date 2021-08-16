@@ -26,9 +26,11 @@ public:
 	~CaptureWidget();
 
 public slots:
-	void OnStartPush(CaptureWidgetParameters);
+	void OnStartPush();
 	void OnResetParam(CaptureWidgetParameters);
 	void OnStopPush();
+
+	void OnSetIsLibrtmpMethod(bool);
 
 	bool IsVideoSeqHeaderNeeded();
 	bool IsAudioSeqHeaderNeeded();
@@ -43,7 +45,11 @@ protected:
 
 	void VideoEncodeCallback(AVPacket* v_pkt);
 	void AudioEncodeCallback(AVPacket* a_pkt);
+
+
+
 private:
+	bool is_librtmp_method_ = false;
 	int output_width_ = -1;
 	int output_height_ = -1;
 	QString url_;

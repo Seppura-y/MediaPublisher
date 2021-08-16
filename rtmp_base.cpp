@@ -56,7 +56,7 @@ bool RtmpBase::Connect()
 	rtmp_->Link.lFlags |= RTMP_LF_LIVE;
 	RTMP_SetBufferMS(rtmp_, (60 * 60 * 1000));
 
-	if (rtmp_base_type_ == RTMP_BASE_TYPE_PUSH)
+	if (rtmp_base_type_ == RtmpBaseType::RTMP_BASE_TYPE_PUSH)
 	{
 		RTMP_EnableWrite(rtmp_);
 	}
@@ -71,7 +71,7 @@ bool RtmpBase::Connect()
 		return false;
 	}
 
-	if (rtmp_base_type_ == RTMP_BASE_TYPE_PUSH)
+	if (rtmp_base_type_ == RtmpBaseType::RTMP_BASE_TYPE_PUSH)
 	{
 		if (!enable_audio_)
 		{
