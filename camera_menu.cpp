@@ -244,21 +244,25 @@ void CameraMenu::SetLocalListItem(ItemListType item_type, int item_index)
 {
     QString openPicUrl = QFileDialog::getOpenFileName(this, QString::fromLocal8Bit("Ñ¡ÔñÎÄ¼þ"), QString("./"), QString("Files (*.mp4)"));
     QString openPicName = openPicUrl.right(openPicUrl.size() - openPicUrl.lastIndexOf('/') - 1);
-    if (item_index >= 0)
+    if (openPicName.size())
     {
-        ItemListWidget* lwCur = (ItemListWidget*)ui.tw_item->currentWidget()->layout()->itemAt(0)->widget();
-        //lwCur->itemType = itemType;
-        lwCur->currentItem()->setText(openPicName);
-        DeleteItem(item_type, item_index);
+        if (item_index >= 0)
+        {
+            ItemListWidget* lwCur = (ItemListWidget*)ui.tw_item->currentWidget()->layout()->itemAt(0)->widget();
+            //lwCur->itemType = itemType;
+            lwCur->currentItem()->setText(openPicName);
+            DeleteItem(item_type, item_index);
+        }
+
+        QJsonObject obj;
+        obj.insert("name", openPicName);
+        obj.insert("url", openPicUrl);
+        obj.insert("item_type", (int)item_type);
+        config_tools_->WriteJson(openPicName, obj, (ConfigurationTools::JsonObjType)item_type);
+        config_tools_->SaveJson(ITEM_LIST_CONFIG);
+        InitItemList();
     }
 
-    QJsonObject obj;
-    obj.insert("name", openPicName);
-    obj.insert("url", openPicUrl);
-    obj.insert("item_type", (int)item_type);
-    config_tools_->WriteJson(openPicName, obj, (ConfigurationTools::JsonObjType)item_type);
-    config_tools_->SaveJson(ITEM_LIST_CONFIG);
-    InitItemList();
 }
 
 void CameraMenu::DeleteItem()

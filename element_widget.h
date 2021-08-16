@@ -22,14 +22,16 @@ class ElementWidget : public QWidget
 
 public:
     explicit ElementWidget(QWidget* parent = nullptr);
-    explicit ElementWidget(int row, int colum, QWidget* parent = nullptr);
+    explicit ElementWidget(int index, QWidget* parent = nullptr);
     ~ElementWidget();
 protected:
     void paintEvent(QPaintEvent* ev) override;
     void mousePressEvent(QMouseEvent* ev) override;
     void dragEnterEvent(QDragEnterEvent* ev) override;
     void dropEvent(QDropEvent* ev) override;
+    void contextMenuEvent(QContextMenuEvent* ev) override;
 
+    void InitUi();
     int OpenMedia(QString url);
     int DrawMediaFrame();
     void ResetAllHandler();
@@ -38,10 +40,9 @@ signals:
     //void selected(int x, int y);
 public slots:
     void OnSignalOpen(QString url);
-
+    void OnSigalSet();
 protected:
-    int colum_ = -1;
-    int row_ = -1;
+    int widget_index_ = -1;
 
     CameraMenu::ItemListType item_type_ = CameraMenu::ItemListType::ITEM_LIST_TYPE_NONE;
     QString name_;

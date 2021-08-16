@@ -291,7 +291,7 @@ void CaptureWidget::OnStopPush()
 
 void CaptureWidget::VideoEncodeCallback(AVPacket* v_pkt)
 {
-	//if (IsVideoSeqHeaderNeeded())
+	if (IsVideoSeqHeaderNeeded())
 	{
 		VideoSequenceHeaderMessage* video_seq_header = new VideoSequenceHeaderMessage(
 			encode_handler_->GetSpsData(),

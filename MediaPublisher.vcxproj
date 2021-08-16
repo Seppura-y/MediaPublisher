@@ -116,6 +116,7 @@
     <ClCompile Include="capture_widget.cpp" />
     <ClCompile Include="configuration_tools.cpp" />
     <ClCompile Include="element_widget.cpp" />
+    <ClCompile Include="file_preview_widget.cpp" />
     <ClCompile Include="hashswf.c" />
     <ClCompile Include="iav_base_handler.cpp" />
     <ClCompile Include="item_listwidget.cpp" />
@@ -133,6 +134,7 @@
     <ClCompile Include="title.cpp" />
     <QtRcc Include="media_publisher.qrc" />
     <QtUic Include="camera_menu.ui" />
+    <QtUic Include="file_preview_widget.ui" />
     <QtUic Include="media_publisher.ui" />
     <QtMoc Include="media_publisher.h" />
     <ClCompile Include="media_publisher.cpp" />
@@ -175,6 +177,7 @@
     <ClInclude Include="dhgroups.h" />
     <QtMoc Include="preview_widget.h" />
     <QtMoc Include="element_widget.h" />
+    <QtMoc Include="file_preview_widget.h" />
     <ClInclude Include="handshake.h" />
     <ClInclude Include="http.h" />
     <ClInclude Include="iav_base_handler.h" />

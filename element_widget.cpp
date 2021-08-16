@@ -17,12 +17,13 @@
 #define ITEM_LIST_CONFIG "./media_publisher/conf/configuration.json"
 #define GRID_CONFIG "./config/grid_conf.json"
 
-ElementWidget::ElementWidget(int row, int colum, QWidget* parent) : QWidget(parent)
+ElementWidget::ElementWidget(int index, QWidget* parent) : QWidget(parent)
 {
-    colum_ = colum;
-    row_ = row;
-
+    widget_index_ = index;
     this->setAcceptDrops(true);
+
+    QAction* act = menu_.addAction(QString::fromLocal8Bit("set"));
+    QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSigalSet);
 }
 
 ElementWidget::ElementWidget(QWidget* parent)
@@ -51,6 +52,12 @@ void ElementWidget::mousePressEvent(QMouseEvent* ev)
 void ElementWidget::dragEnterEvent(QDragEnterEvent* ev)
 {
     ev->acceptProposedAction();
+}
+
+void ElementWidget::contextMenuEvent(QContextMenuEvent* ev)
+{
+    menu_.exec(QCursor::pos());
+    ev->accept();
 }
 
 void ElementWidget::dropEvent(QDropEvent* ev)
@@ -95,27 +102,27 @@ void ElementWidget::ResetAllHandler()
     if (demux_handler_)
     {
         demux_handler_->Stop();
-        demux_handler_ = nullptr;
+
     }
     if (decode_handler_)
     {
         decode_handler_->Stop();
-        decode_handler_ = nullptr;
+
     }
     if (encode_handler_)
     {
         encode_handler_->Stop();
-        encode_handler_ = nullptr;
+
     }
     if (mux_handler_)
     {
         mux_handler_->Stop();
-        mux_handler_ = nullptr;
+
     }
     if (devide_handler_)
     {
         devide_handler_->Stop();
-        devide_handler_ = nullptr;
+
     }
 }
 
@@ -136,4 +143,14 @@ int ElementWidget::OpenMedia(QString url)
 int ElementWidget::DrawMediaFrame()
 {
     return 0;
+}
+
+void ElementWidget::InitUi()
+{
+
+}
+
+void ElementWidget::OnSigalSet()
+{
+    qDebug() << "on signal set";
 }

@@ -178,6 +178,9 @@
     <ClCompile Include="capture_widget.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
+    <ClCompile Include="file_preview_widget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="title.ui">
@@ -190,6 +193,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="preview_widget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="file_preview_widget.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
@@ -213,6 +219,9 @@
       <Filter>Header Files\ui</Filter>
     </QtMoc>
     <QtMoc Include="capture_widget.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="file_preview_widget.h">
       <Filter>Header Files\ui</Filter>
     </QtMoc>
   </ItemGroup>

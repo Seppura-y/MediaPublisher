@@ -32,10 +32,7 @@ public slots:
 
 	void OnSetIsLibrtmpMethod(bool);
 
-	bool IsVideoSeqHeaderNeeded();
-	bool IsAudioSeqHeaderNeeded();
-	void SetVideoSeqHeaderNeeded(bool status);
-	void SetAudioSeqHeaderNeeded(bool status);
+
 protected:
 	void paintEvent(QPaintEvent* ev) override;
 	void timerEvent(QTimerEvent* ev)override;
@@ -46,8 +43,10 @@ protected:
 	void VideoEncodeCallback(AVPacket* v_pkt);
 	void AudioEncodeCallback(AVPacket* a_pkt);
 
-
-
+	bool IsVideoSeqHeaderNeeded();
+	bool IsAudioSeqHeaderNeeded();
+	void SetVideoSeqHeaderNeeded(bool status);
+	void SetAudioSeqHeaderNeeded(bool status);
 private:
 	bool is_librtmp_method_ = false;
 	int output_width_ = -1;

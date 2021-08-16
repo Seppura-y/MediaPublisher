@@ -32,14 +32,14 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="PreviewWidget" name="tab_desktop_preview">
       <attribute name="title">
        <string>Tab 1</string>
       </attribute>
      </widget>
-     <widget class="QWidget" name="tab_camera">
+     <widget class="FilePreviewWidget" name="tab_camera">
       <attribute name="title">
        <string>Tab 2</string>
       </attribute>
@@ -54,6 +54,12 @@
    <class>PreviewWidget</class>
    <extends>QWidget</extends>
    <header>preview_widget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FilePreviewWidget</class>
+   <extends>QWidget</extends>
+   <header>file_preview_widget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
