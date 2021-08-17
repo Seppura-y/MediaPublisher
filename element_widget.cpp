@@ -1,6 +1,7 @@
 #include "element_widget.h"
 #include "item_listwidget.h"
 #include "camera_menu.h"
+#include "item_set_dialog.h"
 
 #include <QPainter>
 #include <QStyleOption>
@@ -85,6 +86,22 @@ void ElementWidget::dropEvent(QDropEvent* ev)
     case CameraMenu::ItemListType::ITEM_LIST_TYPE_LOCAL_FILE:
     {
         qDebug() << "drop local file";
+        ItemSetDialog* dia = new ItemSetDialog((int)itemType);
+        Qt::WindowFlags flag = dia->windowFlags();
+        dia->setWindowFlags(flag | Qt::MSWindowsFixedSizeDialogHint);
+        while (1)
+        {
+            if (dia->exec() == ItemSetDialog::Accepted)
+            {
+                QString url = dia->GetUrl();
+                QString svr = dia->GetServerUrl();
+                break;
+            }
+            else
+            {
+                break;
+            }
+        }
         break;
     }
     default:
@@ -153,4 +170,24 @@ void ElementWidget::InitUi()
 void ElementWidget::OnSigalSet()
 {
     qDebug() << "on signal set";
+}
+
+bool ElementWidget::IsVideoSeqHeaderNeeded()
+{
+    return is_video_seq_header_needed_;
+}
+
+bool ElementWidget::IsAudioSeqHeaderNeeded()
+{
+    return is_audio_seq_header_needed_;
+}
+
+void ElementWidget::SetVideoSeqHeaderNeeded(bool status)
+{
+    is_video_seq_header_needed_ = status;
+}
+
+void ElementWidget::SetAudioSeqHeaderNeeded(bool status)
+{
+    is_audio_seq_header_needed_ = status;
 }

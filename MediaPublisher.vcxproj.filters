@@ -181,6 +181,12 @@
     <ClCompile Include="file_preview_widget.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
+    <ClCompile Include="av_bs_filter.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="item_set_dialog.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="title.ui">
@@ -196,6 +202,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="file_preview_widget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="item_set_dialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
@@ -222,6 +231,9 @@
       <Filter>Header Files\ui</Filter>
     </QtMoc>
     <QtMoc Include="file_preview_widget.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="item_set_dialog.h">
       <Filter>Header Files\ui</Filter>
     </QtMoc>
   </ItemGroup>
@@ -330,6 +342,9 @@
     </ClInclude>
     <ClInclude Include="semaphore.h">
       <Filter>Header Files\rtmp_proc</Filter>
+    </ClInclude>
+    <ClInclude Include="av_bs_filter.h">
+      <Filter>Header Files\media</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

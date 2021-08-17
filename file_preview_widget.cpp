@@ -33,6 +33,8 @@ void FilePreviewWidget::InitUi()
 	
 	//QObject::connect(cb_widget_set_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &FilePreviewWidget::OnSetWidgets);
 	QObject::connect(cb_widget_set_, &QComboBox::currentTextChanged, this, &FilePreviewWidget::OnSetWidgets);
+
+	SetWidgets(cb_widget_set_->currentText().toInt());
 }
 
 void FilePreviewWidget::contextMenuEvent(QContextMenuEvent* ev)

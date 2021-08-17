@@ -96,6 +96,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="amf.c" />
+    <ClCompile Include="av_bs_filter.cpp" />
     <ClCompile Include="av_data_tools.cpp" />
     <ClCompile Include="avtimebase.cpp" />
     <ClCompile Include="av_codec_base.cpp" />
@@ -120,6 +121,7 @@
     <ClCompile Include="hashswf.c" />
     <ClCompile Include="iav_base_handler.cpp" />
     <ClCompile Include="item_listwidget.cpp" />
+    <ClCompile Include="item_set_dialog.cpp" />
     <ClCompile Include="ivideo_view.cpp" />
     <ClCompile Include="log.c" />
     <ClCompile Include="message_base.cpp" />
@@ -135,6 +137,7 @@
     <QtRcc Include="media_publisher.qrc" />
     <QtUic Include="camera_menu.ui" />
     <QtUic Include="file_preview_widget.ui" />
+    <QtUic Include="item_set_dialog.ui" />
     <QtUic Include="media_publisher.ui" />
     <QtMoc Include="media_publisher.h" />
     <ClCompile Include="media_publisher.cpp" />
@@ -154,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="amf.h" />
+    <ClInclude Include="av_bs_filter.h" />
     <ClInclude Include="av_data_tools.h" />
     <ClInclude Include="avtimebase.h" />
     <ClInclude Include="av_codec_base.h" />
@@ -181,6 +185,7 @@
     <ClInclude Include="handshake.h" />
     <ClInclude Include="http.h" />
     <ClInclude Include="iav_base_handler.h" />
+    <QtMoc Include="item_set_dialog.h" />
     <ClInclude Include="ivideo_view.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="media_base.h" />
