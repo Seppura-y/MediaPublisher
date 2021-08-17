@@ -22,18 +22,23 @@ public:
 	PreviewWidget(QWidget *parent = Q_NULLPTR);
 	~PreviewWidget();
 
-
 protected:
 	void InitUI();
 	void ConnectSigAndSlots();
 signals:
-	void SigStartPush(CaptureWidgetParameters);
+	void SigStartPush();
 	void SigStopPush();
+	void SigResetParam(CaptureWidgetParameters);
+
+	void SigSetIsLibRtmpMethod(bool);
 protected slots:
 
 	void OnPbPushClicked();
 	void OnPbStopClicked();
 	void OnPbResetClicked();
+
+	void OnRbFfmpegClicked();
+	void OnRbLibrtmpClicked();
 private:
 	Ui::PreviewWidget ui;
 
