@@ -13,6 +13,11 @@ public:
 	int Open(AVCodecParameters* param);
 	virtual void Handle(AVHandlerPackage* pkg) override;
 	void GetPlayFrame(AVFrame* frame);
+
+	uint8_t* GetSpsData();
+	uint8_t* GetPpsData();
+	int GetSpsSize();
+	int GetPpsSize();
 protected:
 	virtual void Loop() override;
 	void CreateFrame();

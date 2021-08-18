@@ -20,6 +20,12 @@ public:
 	QString GetUrl();
 	QString GetServerUrl();
 	QString GetSubUrl();
+	QString GetName();
+
+	void SetUrl(QString url);
+	void SetSubUrl(QString url);
+	void SetServerUrl(QString url);
+	void SetName(QString name);
 protected slots:
 	void GetLocalFilename();
 protected:
@@ -32,6 +38,7 @@ private:
 	QLineEdit* le_url_ = nullptr;
 	QLineEdit* le_sub_url_ = nullptr;
 	QLineEdit* le_server_ = nullptr;
+	QLineEdit* le_name_ = nullptr;
 
 	QString filename_;
 };

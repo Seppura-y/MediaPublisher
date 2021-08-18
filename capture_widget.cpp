@@ -246,13 +246,14 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 
 void CaptureWidget::OnStartPush()
 {
-	if (capture_handler_)
+	if (!is_librtmp_method_)
 	{
-		if (capture_handler_->IsExit())
+		if (mux_handler_->IsExit())
 		{
-			capture_handler_->Start();
+			mux_handler_->Start();
 		}
 	}
+
 	if (encode_handler_)
 	{
 		encode_handler_->SetEncodePause(false);
@@ -262,11 +263,11 @@ void CaptureWidget::OnStartPush()
 		}
 	}
 
-	if (!is_librtmp_method_)
+	if (capture_handler_)
 	{
-		if (mux_handler_->IsExit())
+		if (capture_handler_->IsExit())
 		{
-			mux_handler_->Start();
+			capture_handler_->Start();
 		}
 	}
 }

@@ -67,11 +67,58 @@ int AVFormatBase::SetFormatContext(AVFormatContext* ctx)
 			audio_timebase_->den = fmt_ctx_->streams[i]->time_base.den;
 			audio_timebase_->num = fmt_ctx_->streams[i]->time_base.num;
 		}
+
 		if (fmt_ctx_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
 		{
 			video_index_ = i;
 			video_timebase_->den = fmt_ctx_->streams[i]->time_base.den;
 			video_timebase_->num = fmt_ctx_->streams[i]->time_base.num;
+
+			//get sps pps data
+			if (fmt_ctx_->streams[i]->codecpar->codec_id == AV_CODEC_ID_H264 && fmt_ctx_->streams[i]->codecpar->extradata && fmt_ctx_->streams[i]->codecpar->extradata_size > 0)
+			{
+				int data_size = fmt_ctx_->streams[i]->codecpar->extradata_size;
+				uint8_t* data = fmt_ctx_->streams[i]->codecpar->extradata;
+				uint8_t num_of_sps;
+				uint8_t num_of_pps;
+				uint8_t* sps;
+				uint8_t* pps;
+				uint8_t sps_index = -1;
+				uint8_t pps_index = -1;
+				sps_size_ = 0;
+				pps_size_ = 0;
+				for (int i = 1; i < data_size; i++)
+				{
+					if (data[ i ] == 0x67 && data[ i - 2 ] == 0x00)
+					{
+						num_of_sps = data[i - 3] & 0x1f;
+						uint8_t tmp_size = data[ i - 1 ];
+						sps = &data[ i ];
+						sps_index = sps - data;
+						do
+						{
+							sps_data_.append((const char*)sps,tmp_size);
+							sps_size_ += tmp_size;
+							sps = sps + tmp_size;
+							tmp_size = *(sps + 2);
+						} while (--num_of_sps);
+
+						//num_of_pps = *(sps + 1);
+						break;
+					}
+				}
+				pps_index = sps_index + sps_size_;
+				num_of_pps = data[pps_index];
+				uint8_t tmp_size = data[pps_index + 2];
+				pps = &data[pps_index + 3];
+				do
+				{
+					pps_data_.append((const char*)pps, tmp_size);
+					pps_size_ += tmp_size;
+					pps = pps + tmp_size;
+					tmp_size = *(pps + 2);
+				} while (--num_of_pps);
+			}
 		}
 	}
 
@@ -146,7 +193,7 @@ bool AVFormatBase::is_network_connected()
 
 bool AVFormatBase::HasVideo()
 {
-	unique_lock<mutex> lock(mtx_);
+	//unique_lock<mutex> lock(mtx_);
 	if (video_index_ != -1) return true;
 	else return false;
 }
@@ -203,4 +250,44 @@ void AVFormatBase::SetProtocolType(AVProtocolType type)
 {
 	unique_lock<mutex> lock(mtx_);
 	protocol_type_ = type;
+}
+
+uint8_t* AVFormatBase::GetSpsData()
+{
+	return (uint8_t*)sps_data_.c_str();
+}
+
+uint8_t* AVFormatBase::GetPpsData()
+{
+	return (uint8_t*)pps_data_.c_str();
+}
+
+int AVFormatBase::GetSpsSize()
+{
+	return sps_size_;
+}
+
+int AVFormatBase::GetPpsSize()
+{
+	return pps_size_;
+}
+
+int AVFormatBase::GetCodecExtraData(uint8_t* buffer, int& size)
+{
+	unique_lock<mutex> lock(mtx_);
+	if (!fmt_ctx_)
+	{
+		cout << "GetCodecExtraData failed : fmt_ctx_ is null" << endl;
+		return -1;
+	}
+	if (fmt_ctx_->streams[video_index_]->codecpar->codec_id == AV_CODEC_ID_H264)
+	{
+		memcpy(buffer, fmt_ctx_->streams[video_index_]->codecpar->extradata, fmt_ctx_->streams[video_index_]->codecpar->extradata_size);
+		size = fmt_ctx_->streams[video_index_]->codecpar->extradata_size;
+	}
+	else
+	{
+		return -1;
+	}
+	return 0;
 }

@@ -13,6 +13,7 @@ enum class AVProtocolType
 	AV_PROTOCOL_TYPE_RTMP,
 	AV_PROTOCOL_TYPE_RTSP
 };
+
 class AVFormatBase
 {
 public:
@@ -33,6 +34,12 @@ public:
 	int get_audio_index();
 	int get_video_index();
 
+	int GetCodecExtraData(uint8_t* buffer, int& size);
+	uint8_t* GetSpsData();
+	uint8_t* GetPpsData();
+	int GetSpsSize();
+	int GetPpsSize();
+
 	virtual void SetProtocolType(AVProtocolType type);
 protected:
 	bool IsTimeout();
@@ -44,6 +51,11 @@ protected:
 
 	AVRational* audio_timebase_{ nullptr };
 	AVRational* video_timebase_{ nullptr };
+
+	int sps_size_ = -1;
+	int pps_size_ = -1;
+	std::string sps_data_;
+	std::string pps_data_;
 
 	int audio_index_ = -1;
 	int video_index_ = -1;

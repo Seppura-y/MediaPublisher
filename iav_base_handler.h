@@ -9,13 +9,13 @@
 
 struct AVPacket;
 
-enum AVHandlerPackageType
+enum class AVHandlerPackageType
 {
 	AVHANDLER_PACKAGE_TYPE_PACKET,
 	AVHANDLER_PACKAGE_TYPE_FRAME
 };
 
-enum AVHandlerPackageAVType
+enum class AVHandlerPackageAVType
 {
 	AVHANDLER_PACKAGE_AV_TYPE_AUDIO,
 	AVHANDLER_PACKAGE_AV_TYPE_VIDEO

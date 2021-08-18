@@ -23,9 +23,11 @@ void ItemSetDialog::InitUi(int type)
 	pb_ok_ = ui.pb_ok;
 	pb_cancel_ = ui.pb_cancel;
 	pb_open_ = ui.pb_open;
+	le_name_ = ui.le_name;
 	le_url_ = ui.le_url;
 	le_server_ = ui.le_server;
 	le_sub_url_ = ui.le_sub_url;
+
 	if (type == 1)
 	{
 		le_sub_url_->hide();
@@ -56,8 +58,33 @@ QString ItemSetDialog::GetSubUrl()
 	return le_sub_url_->text();
 }
 
+QString ItemSetDialog::GetName()
+{
+	return le_name_->text();
+}
+
 void ItemSetDialog::GetLocalFilename()
 {
      filename_ = QFileDialog::getOpenFileName(this, QString::fromLocal8Bit("select file"), QString("./"), QString("Files (*.mp4)"));
 	 ui.le_url->setText(filename_);
+}
+
+void ItemSetDialog::SetUrl(QString url)
+{
+	ui.le_url->setText(url);
+}
+
+void ItemSetDialog::SetSubUrl(QString url)
+{
+	ui.le_sub_url->setText(url);
+}
+
+void ItemSetDialog::SetServerUrl(QString url)
+{
+	ui.le_server->setText(url);
+}
+
+void ItemSetDialog::SetName(QString name)
+{
+	ui.le_name->setText(name);
 }

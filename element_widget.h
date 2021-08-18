@@ -31,6 +31,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent* ev) override;
     void dropEvent(QDropEvent* ev) override;
     void contextMenuEvent(QContextMenuEvent* ev) override;
+    void timerEvent(QTimerEvent* ev) override;
 
     void InitUi();
     int OpenMedia(QString url);
@@ -42,27 +43,36 @@ protected:
     void SetVideoSeqHeaderNeeded(bool status);
     void SetAudioSeqHeaderNeeded(bool status);
 
+    bool ConfigHandlers();
+    bool StartHandle();
+
 signals:
     //void selected(int x, int y);
+    void SigConfigAndStartHandler();
 public slots:
     void OnSignalOpen(QString url);
     void OnSigalSet();
+    void OnConfigAndStartHandler();
 protected:
-
+    void DemuxCallback(AVPacket* pkt);
 private:
-    QString url_;
     QMenu menu_;
+
+    QString url_;
     QString name_;
     QString sub_url_;
+    QString server_url_;
     CameraMenu::ItemListType item_type_ = CameraMenu::ItemListType::ITEM_LIST_TYPE_NONE;
 
-    IVideoView* view_ = nullptr;
+
     AVDemuxHandler* demux_handler_ = nullptr;
-    AVMuxHandler* mux_handler_ = nullptr;
-    AVDecodeHandler* decode_handler_ = nullptr;
-    AVEncodeHandler* encode_handler_ = nullptr;
     AVDevideHandler* devide_handler_ = nullptr;
+    AVMuxHandler* mux_handler_ = nullptr;
     RtmpPusher* rtmp_pusher_ = nullptr;
+    AVDecodeHandler* v_decode_handler_ = nullptr;
+    IVideoView* view_ = nullptr;
+
+    AVEncodeHandler* encode_handler_ = nullptr;
 
     int widget_index_ = -1;
     int output_width_ = -1;

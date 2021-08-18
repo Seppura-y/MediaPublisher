@@ -91,26 +91,71 @@ int AVCodecBase::OpenContext()
 		return -1;
 	}
 	if (codec_ctx_ && codec_ctx_->codec_type == AVMEDIA_TYPE_VIDEO && codec_ctx_->extradata && codec_ctx_->extradata_size > 0)
+	if (codec_ctx_ && codec_ctx_->codec_id == AV_CODEC_ID_H264 && codec_ctx_->extradata && codec_ctx_->extradata_size > 0)
 	{
 		int data_size = codec_ctx_->extradata_size;
 		uint8_t* data = codec_ctx_->extradata;
+		uint8_t num_of_sps;
+		uint8_t num_of_pps;
 		uint8_t* sps;
 		uint8_t* pps;
-
-		for (int i = 4; i < data_size; i++)
+		uint8_t sps_index = -1;
+		uint8_t pps_index = -1;
+		sps_size_ = 0;
+		pps_size_ = 0;
+		for (int i = 1; i < data_size; i++)
 		{
-			if (data[i] == 0x00 && data[i + 1] == 0x00 && data[i + 2] == 0x00 && data[i + 3] == 0x01)
+			if (data[i] == 0x67 && data[i - 2] == 0x00)
 			{
-				sps_size_ = i - 4;
-				pps_size_ = data_size - i - 4;
-				pps = &data[i + 4];
+				num_of_sps = data[i - 3] & 0x1f;
+				uint8_t tmp_size = data[i - 1];
+				sps = &data[i];
+				sps_index = sps - data;
+				do
+				{
+					sps_data_.append((const char*)sps, tmp_size);
+					sps_size_ += tmp_size;
+					sps = sps + tmp_size;
+					tmp_size = *(sps + 2);
+				} while (--num_of_sps);
+
+				//num_of_pps = *(sps + 1);
 				break;
 			}
 		}
-		sps = &data[4];
-		sps_data_.append((const char*)sps, sps_size_);
-		pps_data_.append((const char*)pps, pps_size_);
+		pps_index = sps_index + sps_size_;
+		num_of_pps = data[pps_index];
+		uint8_t tmp_size = data[pps_index + 2];
+		pps = &data[pps_index + 3];
+		do
+		{
+			pps_data_.append((const char*)pps, tmp_size);
+			pps_size_ += tmp_size;
+			pps = pps + tmp_size;
+			tmp_size = *(pps + 2);
+		} while (--num_of_pps);
 	}
+	//if (codec_ctx_ && codec_ctx_->codec_type == AVMEDIA_TYPE_VIDEO && codec_ctx_->extradata && codec_ctx_->extradata_size > 0)
+	//{
+	//	int data_size = codec_ctx_->extradata_size;
+	//	uint8_t* data = codec_ctx_->extradata;
+	//	uint8_t* sps;
+	//	uint8_t* pps;
+
+	//	for (int i = 4; i < data_size; i++)
+	//	{
+	//		if (data[i] == 0x00 && data[i + 1] == 0x00 && data[i + 2] == 0x00 && data[i + 3] == 0x01)
+	//		{
+	//			sps_size_ = i - 4;
+	//			pps_size_ = data_size - i - 4;
+	//			pps = &data[i + 4];
+	//			break;
+	//		}
+	//	}
+	//	sps = &data[4];
+	//	sps_data_.append((const char*)sps, sps_size_);
+	//	pps_data_.append((const char*)pps, pps_size_);
+	//}
 	return 0;
 }
 
@@ -153,8 +198,15 @@ int AVCodecBase::GetCodecExtraData(uint8_t* buffer,int& size)
 		cout << "GetCodecExtraData failed : codec_ctx_ is null" << endl;
 		return -1;
 	}
-	memcpy(buffer, codec_ctx_->extradata,codec_ctx_->extradata_size);
-	size = codec_ctx_->extradata_size;
+	if (codec_ctx_->codec_id == AV_CODEC_ID_H264)
+	{
+		memcpy(buffer, codec_ctx_->extradata, codec_ctx_->extradata_size);
+		size = codec_ctx_->extradata_size;
+	}
+	else
+	{
+		return -1;
+	}
 	return 0;
 }
 

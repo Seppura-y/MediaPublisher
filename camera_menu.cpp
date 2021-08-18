@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 
+#include "item_set_dialog.h"
 
 #define ITEM_LIST_CONFIG "./media_publisher/conf/configuration.json"
 //#define GRID_CONFIG "./config/MediaPublisher/grid_conf.json"
@@ -89,24 +90,25 @@ void CameraMenu::OnCmrMenuDelButtonClicked()
 void CameraMenu::AddListItem()
 {
 	ItemListType type = (ItemListType)ui.tw_item->currentIndex();
-	switch (type)
-	{
-		case ItemListType::ITEM_LIST_TYPE_CAMERA:
-		{
-			SetListItem(type, -1);
-			break;
-		}
-		case ItemListType::ITEM_LIST_TYPE_LOCAL_FILE:
-		{
-			SetLocalListItem(type, -1);
-			break;
-		}
-		default:
-		{
-			qDebug() << "AddListItem ITEM_LIST_TYPE_NONE";
-			break;
-		}
-	}
+	//switch (type)
+	//{
+	//	case ItemListType::ITEM_LIST_TYPE_CAMERA:
+	//	{
+	//		SetListItem(type, -1);
+	//		break;
+	//	}
+	//	case ItemListType::ITEM_LIST_TYPE_LOCAL_FILE:
+	//	{
+	//		SetLocalListItem(type, -1);
+	//		break;
+	//	}
+	//	default:
+	//	{
+	//		qDebug() << "AddListItem ITEM_LIST_TYPE_NONE";
+	//		break;
+	//	}
+	//}
+    SetListItem(type,-1);
 }
 
 void CameraMenu::SetListItem()
@@ -118,54 +120,144 @@ void CameraMenu::SetListItem()
 		qDebug() << "SetListItem failed : please select a item";
 		return;
 	}
-	switch (type)
-	{
-		case ItemListType::ITEM_LIST_TYPE_CAMERA:
-		{
-			SetListItem(type, index);
-			break;
-		}
-		case ItemListType::ITEM_LIST_TYPE_LOCAL_FILE:
-		{
-			SetLocalListItem(type, index);
-			break;
-		}
-		default:
-		{
-			qDebug() << "SetListItem ITEM_LIST_TYPE_NONE";
-			return;
-		}
-	}
+	//switch (type)
+	//{
+	//	case ItemListType::ITEM_LIST_TYPE_CAMERA:
+	//	{
+	//		SetListItem(type, index);
+	//		break;
+	//	}
+	//	case ItemListType::ITEM_LIST_TYPE_LOCAL_FILE:
+	//	{
+	//		SetLocalListItem(type, index);
+	//		break;
+	//	}
+	//	default:
+	//	{
+	//		qDebug() << "SetListItem ITEM_LIST_TYPE_NONE";
+	//		return;
+	//	}
+	//}
+    SetListItem(type, index);
 }
+//
+//void CameraMenu::SetListItem(ItemListType item_type, int item_index)
+//{
+//
+//    QDialog dia(this);
+//    dia.resize(600, 120);
+//
+//    QFormLayout* formLayout = new QFormLayout();
+//    dia.setLayout(formLayout);
+//
+//    QLineEdit leName;
+//    formLayout->addRow(QString::fromLocal8Bit("name : "), &leName);
+//
+//    QLineEdit leUrl;
+//    formLayout->addRow(QString::fromLocal8Bit("url"), &leUrl);
+//
+//    QLineEdit leSubUrl;
+//    if (item_type == ItemListType::ITEM_LIST_TYPE_CAMERA)
+//    {
+//        formLayout->addRow(QString::fromLocal8Bit("sub_url"), &leSubUrl);
+//    }
+//
+//    QPushButton pbAccept;
+//    pbAccept.setText(QString::fromLocal8Bit("accept"));
+//    QObject::connect(&pbAccept, SIGNAL(clicked()), &dia, SLOT(accept()));
+//    formLayout->addRow(&pbAccept);
+//
+//    QJsonObject obj;
+//    QString key;
+//    if (item_index >= 0)
+//    {
+//        ItemListWidget* lwCur = (ItemListWidget*)ui.tw_item->currentWidget()->layout()->itemAt(0)->widget();
+//        lwCur->item_type_ = (int)item_type;
+//        key = lwCur->currentItem()->text();
+//        obj = *config_tools_->GetObject((ConfigurationTools::JsonObjType)item_type);
+//
+//        if (!obj.contains(key))
+//        {
+//            qDebug() << "set item : do not have this key";
+//            return;
+//        }
+//        QJsonObject::iterator it = obj.find(key);
+//        obj = it.value().toObject();
+//        leName.setText(obj.find("name").value().toString());
+//        leUrl.setText(obj.find("url").value().toString());
+//        if (item_type == ItemListType::ITEM_LIST_TYPE_CAMERA)
+//        {
+//            leSubUrl.setText(obj.find("SubUrl").value().toString());
+//        }
+//        DeleteItem(item_type, item_index);
+//    }
+//
+//    QJsonObject info;
+//
+//    for (;;)
+//    {
+//        if (dia.exec() == QDialog::Accepted)
+//        {
+//            if (leName.text().isEmpty())
+//            {
+//                QMessageBox::information(nullptr, "error", "please set a name");
+//                continue;
+//            }
+//
+//            if (leUrl.text().isEmpty())
+//            {
+//                QMessageBox::information(nullptr, "error", "please set a name");
+//                continue;
+//            }
+//
+//            if (item_type == ItemListType::ITEM_LIST_TYPE_CAMERA)
+//            {
+//                if (leSubUrl.text().isEmpty())
+//                {
+//                    QMessageBox::information(nullptr, "error", "please set a name");
+//                    continue;
+//                }
+//                info.insert("SubUrl", leSubUrl.text());
+//            }
+//
+//            info.insert("name", leName.text());
+//            info.insert("url", leUrl.text());
+//            info.insert("item_type", (int)item_type);
+//            //info.insert("item_index", index);
+//            config_tools_->WriteJson(leName.text(), info, (ConfigurationTools::JsonObjType)item_type);
+//            config_tools_->SaveJson(ITEM_LIST_CONFIG);
+//            InitItemList();
+//            break;
+//        }
+//        else if (dia.close())
+//        {
+//            //config_tools_->WriteJson(key, obj, (ConfigurationTools::JsonObjType)item_type);
+//            //QJsonDocument doc;
+//            //doc.setObject(obj);
+//            //QByteArray arr = doc.toJson();
+//            //config_tools_->SaveJson(ITEM_LIST_CONFIG);
+//            //InitItemList();
+//            return;
+//        }
+//    }
+//
+//}
+
+
 
 void CameraMenu::SetListItem(ItemListType item_type, int item_index)
 {
-
-    QDialog dia(this);
-    dia.resize(600, 120);
-
-    QFormLayout* formLayout = new QFormLayout();
-    dia.setLayout(formLayout);
-
-    QLineEdit leName;
-    formLayout->addRow(QString::fromLocal8Bit("name : "), &leName);
-
-    QLineEdit leUrl;
-    formLayout->addRow(QString::fromLocal8Bit("url"), &leUrl);
-
-    QLineEdit leSubUrl;
-    if (item_type == ItemListType::ITEM_LIST_TYPE_CAMERA)
-    {
-        formLayout->addRow(QString::fromLocal8Bit("sub_url"), &leSubUrl);
-    }
-
-    QPushButton pbAccept;
-    pbAccept.setText(QString::fromLocal8Bit("accept"));
-    QObject::connect(&pbAccept, SIGNAL(clicked()), &dia, SLOT(accept()));
-    formLayout->addRow(&pbAccept);
+    ItemSetDialog* dia = new ItemSetDialog((int)item_type);
+    Qt::WindowFlags flag = dia->windowFlags();
+    dia->setWindowFlags(flag | Qt::MSWindowsFixedSizeDialogHint);
 
     QJsonObject obj;
     QString key;
+    QString name;
+    QString url;
+    QString sub_url;
+    QString server_url;
+
     if (item_index >= 0)
     {
         ItemListWidget* lwCur = (ItemListWidget*)ui.tw_item->currentWidget()->layout()->itemAt(0)->widget();
@@ -180,12 +272,18 @@ void CameraMenu::SetListItem(ItemListType item_type, int item_index)
         }
         QJsonObject::iterator it = obj.find(key);
         obj = it.value().toObject();
-        leName.setText(obj.find("name").value().toString());
-        leUrl.setText(obj.find("url").value().toString());
+
+        name = obj.find("name").value().toString();
+        url = obj.find("url").value().toString();
+        server_url = obj.find("server_url").value().toString();
         if (item_type == ItemListType::ITEM_LIST_TYPE_CAMERA)
         {
-            leSubUrl.setText(obj.find("SubUrl").value().toString());
+            sub_url = obj.find("SubUrl").value().toString();
         }
+        dia->SetName(name);
+        dia->SetUrl(url);
+        dia->SetSubUrl(sub_url);
+        dia->SetServerUrl(server_url);
         DeleteItem(item_type, item_index);
     }
 
@@ -193,51 +291,56 @@ void CameraMenu::SetListItem(ItemListType item_type, int item_index)
 
     for (;;)
     {
-        if (dia.exec() == QDialog::Accepted)
+        if (dia->exec() == QDialog::Accepted)
         {
-            if (leName.text().isEmpty())
+            if (dia->GetName().isEmpty())
             {
                 QMessageBox::information(nullptr, "error", "please set a name");
                 continue;
             }
 
-            if (leUrl.text().isEmpty())
+            if (dia->GetUrl().isEmpty())
             {
-                QMessageBox::information(nullptr, "error", "please set a name");
+                QMessageBox::information(nullptr, "error", "url is empty");
                 continue;
             }
 
             if (item_type == ItemListType::ITEM_LIST_TYPE_CAMERA)
             {
-                if (leSubUrl.text().isEmpty())
+                if (dia->GetSubUrl().isEmpty())
                 {
-                    QMessageBox::information(nullptr, "error", "please set a name");
+                    QMessageBox::information(nullptr, "error", "sub url is empty");
                     continue;
                 }
-                info.insert("SubUrl", leSubUrl.text());
+                info.insert("SubUrl", dia->GetSubUrl());
             }
 
-            info.insert("name", leName.text());
-            info.insert("url", leUrl.text());
+            info.insert("name",dia->GetName());
+            info.insert("url", dia->GetUrl());
+            info.insert("sub_url", dia->GetSubUrl());
+            info.insert("server_url", dia->GetServerUrl());
             info.insert("item_type", (int)item_type);
-            //info.insert("item_index", index);
-            config_tools_->WriteJson(leName.text(), info, (ConfigurationTools::JsonObjType)item_type);
+
+            config_tools_->WriteJson(dia->GetName(), info, (ConfigurationTools::JsonObjType)item_type);
             config_tools_->SaveJson(ITEM_LIST_CONFIG);
             InitItemList();
             break;
         }
-        else if (dia.close())
+        else if (dia->close())
         {
-            //config_tools_->WriteJson(key, obj, (ConfigurationTools::JsonObjType)item_type);
-            //QJsonDocument doc;
-            //doc.setObject(obj);
-            //QByteArray arr = doc.toJson();
-            //config_tools_->SaveJson(ITEM_LIST_CONFIG);
-            //InitItemList();
+            if (item_index < 0)
+            {
+                return;
+            }
+            config_tools_->WriteJson(key, obj, (ConfigurationTools::JsonObjType)item_type);
+            ////QJsonDocument doc;
+            ////doc.setObject(obj);
+            ////QByteArray arr = doc.toJson();
+            config_tools_->SaveJson(ITEM_LIST_CONFIG);
+            InitItemList();
             return;
         }
     }
-
 }
 
 void CameraMenu::SetLocalListItem(ItemListType item_type, int item_index)

@@ -137,3 +137,28 @@ void AVDecodeHandler::GetPlayFrame(AVFrame* frame)
 		av_frame_unref(play_frame_);//decodec_frame_    -------->  ref count = 1
 	}
 }
+
+
+uint8_t* AVDecodeHandler::GetSpsData()
+{
+	unique_lock<mutex> lock(mtx_);
+	return decoder_.GetSpsData();
+}
+
+uint8_t* AVDecodeHandler::GetPpsData()
+{
+	unique_lock<mutex> lock(mtx_);
+	return decoder_.GetPpsData();
+}
+
+int AVDecodeHandler::GetSpsSize()
+{
+	unique_lock<mutex> lock(mtx_);
+	return decoder_.GetSpsSize();
+}
+
+int AVDecodeHandler::GetPpsSize()
+{
+	unique_lock<mutex> lock(mtx_);
+	return decoder_.GetPpsSize();
+}

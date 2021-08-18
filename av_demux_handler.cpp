@@ -40,11 +40,19 @@ void AVDemuxHandler::Loop()
 	{
 		if (demuxer_.Read(pkt) >= 0)
 		{
-			payload->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
-			payload->payload_.packet_ = av_packet_alloc();
-			av_packet_ref(payload->payload_.packet_,pkt);
-			GetNextHandler()->Handle(payload);
-			av_packet_unref(pkt);
+			if (is_callback_enable_)
+			{
+				callable_object_(pkt);
+			}
+			if (GetNextHandler())
+			{
+				payload->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
+				payload->payload_.packet_ = av_packet_alloc();
+				av_packet_ref(payload->payload_.packet_, pkt);
+				GetNextHandler()->Handle(payload);
+				av_packet_unref(pkt);
+			}
+
 		}
 		if (!demuxer_.is_network_connected())
 		{
@@ -77,4 +85,43 @@ std::shared_ptr<AVParamWarpper> AVDemuxHandler::CopyVideoParameters()
 std::shared_ptr<AVParamWarpper> AVDemuxHandler::CopyAudioParameters()
 {
 	return demuxer_.CopyAudioParameters();
+}
+
+int AVDemuxHandler::GetVideoIndex()
+{
+	return demuxer_.get_video_index();
+}
+
+int AVDemuxHandler::GetAudioIndex()
+{
+	return demuxer_.get_audio_index();
+}
+
+uint8_t* AVDemuxHandler::GetSpsData()
+{
+	unique_lock<mutex> lock(mtx_);
+	return demuxer_.GetSpsData();
+}
+
+uint8_t* AVDemuxHandler::GetPpsData()
+{
+	unique_lock<mutex> lock(mtx_);
+	return demuxer_.GetPpsData();
+}
+
+int AVDemuxHandler::GetSpsSize()
+{
+	unique_lock<mutex> lock(mtx_);
+	return demuxer_.GetSpsSize();
+}
+
+int AVDemuxHandler::GetPpsSize()
+{
+	unique_lock<mutex> lock(mtx_);
+	return demuxer_.GetPpsSize();
+}
+
+int AVDemuxHandler::CopyCodecExtraData(uint8_t* buffer, int& size)
+{
+	return demuxer_.GetCodecExtraData(buffer, size);
 }
