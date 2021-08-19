@@ -6,6 +6,7 @@
 #include "av_data_tools.h"
 
 struct AVFormatContext;
+struct AVRational;
 
 enum class AVProtocolType
 {
@@ -34,6 +35,8 @@ public:
 	int get_audio_index();
 	int get_video_index();
 
+	AVRational* GetVideoTimebase();
+	AVRational* GetAudioTimebase();
 	int GetCodecExtraData(uint8_t* buffer, int& size);
 	uint8_t* GetSpsData();
 	uint8_t* GetPpsData();

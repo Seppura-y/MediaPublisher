@@ -17,6 +17,8 @@ extern"C"
 #pragma comment(lib,"avutil.lib")
 #endif
 
+#include <thread>
+
 #include <QPainter>
 #include <QStyleOption>
 #include <QAction>
@@ -32,6 +34,7 @@ extern"C"
 #define ITEM_LIST_CONFIG "./media_publisher/conf/configuration.json"
 #define GRID_CONFIG "./config/grid_conf.json"
 
+using namespace std;
 ElementWidget::ElementWidget(int index, QWidget* parent) : QWidget(parent)
 {
     widget_index_ = index;
@@ -51,18 +54,19 @@ ElementWidget::ElementWidget(QWidget* parent)
 
 ElementWidget::~ElementWidget()
 {
-    ResetAllHandler();
+    DestoryAllHandler();
 }
 
 void ElementWidget::timerEvent(QTimerEvent* ev)
 {
     if (v_decode_handler_ && view_)
     {
-        AVFrame* frame;
+        AVFrame* frame = av_frame_alloc();
         v_decode_handler_->GetPlayFrame(frame);
 
         view_->DrawFrame(frame);
         //av_frame_unref(frame);
+
     }
 }
 
@@ -205,7 +209,7 @@ void ElementWidget::SetAudioSeqHeaderNeeded(bool status)
     is_audio_seq_header_needed_ = status;
 }
 
-bool ElementWidget::ConfigHandlers()
+int ElementWidget::ConfigHandlers()
 {
 	bool ret = false;
     output_width_ = this->width();
@@ -213,23 +217,23 @@ bool ElementWidget::ConfigHandlers()
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//config view according to output dimension
-	if (view_)
-	{
-		view_->ResetView();
-	}
-	else if (!view_)
-	{
-		view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
-	}
-	view_->InitView(output_width_, output_height_, PixFormat::PIX_FORMAT_YUV420P, (void*)this->winId());
-	if (output_width_ > this->width() || output_height_ > this->height())
-	{
-		view_->ScaleView(this->width(), this->height());
-	}
-	else
-	{
-		view_->ScaleView(output_width_, output_height_);
-	}
+	//if (view_)
+	//{
+	//	view_->ResetView();
+	//}
+	//else if (!view_)
+	//{
+	//	view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
+	//}
+	//view_->InitView(output_width_, output_height_, PixFormat::PIX_FORMAT_YUV420P, (void*)this->winId());
+	//if (output_width_ > this->width() || output_height_ > this->height())
+	//{
+	//	view_->ScaleView(this->width(), this->height());
+	//}
+	//else
+	//{
+	//	view_->ScaleView(output_width_, output_height_);
+	//}
     
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //config demux handler according to avsource
@@ -245,7 +249,7 @@ bool ElementWidget::ConfigHandlers()
     if (!ret)
     {
         qDebug() << "demux_handler_->OpenAVSource failed";
-        return false;
+        return -1;
     }
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,61 +266,75 @@ bool ElementWidget::ConfigHandlers()
     if (!para)
     {
         qDebug() << "auto para = demux_handler_->CopyVideoParameters() para is null";
-        return false;
+        return -1;
     }
     ret = v_decode_handler_->Open(para->para);
 	if (ret != 0)
 	{
 		qDebug() << "decode_handler_->Open failed";
-		return false;
+		return -1;
 	}
+    v_decode_handler_->SetNeedPlay(true);
+    demux_handler_->SetNextHandler(v_decode_handler_);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //config view
+    if (view_)
+    {
+        view_->ResetView();
+    }
+    else if (!view_)
+    {
+        view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
+    }
+    view_->SetWindowId((void*)this->winId());
+    view_->InitView(para->para);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //reset mux handler(ffmpeg) or rtmp_pusher(librtmp) according to codec parameters
-    if (is_librtmp_method_)
-    {
-        if (!rtmp_pusher_)
-        {
-            rtmp_pusher_ = new RtmpPusher(RtmpBaseType::RTMP_BASE_TYPE_PUSH, url_.toStdString());
-        }
-        demux_handler_->SetPushCallbackFunction(std::bind(&ElementWidget::DemuxCallback, this, std::placeholders::_1));
-        demux_handler_->SetCallbackEnable(true);
-    }
-    else
-    {
-        demux_handler_->SetCallbackEnable(false);
-        demux_handler_->SetNextHandler(nullptr);
-        if (!mux_handler_)
-        {
-            mux_handler_ = new AVMuxHandler();
-        }
-        else
-        {
-            mux_handler_->Stop();
-        }
-        auto codec_param = demux_handler_->CopyVideoParameters();
-        int extra_data_size = 0;
-        uint8_t extra_data[4096] = { 0 };
-        ret = demux_handler_->CopyCodecExtraData(extra_data, extra_data_size);
+    //if (is_librtmp_method_)
+    //{
+    //    if (!rtmp_pusher_)
+    //    {
+    //        rtmp_pusher_ = new RtmpPusher(RtmpBaseType::RTMP_BASE_TYPE_PUSH, url_.toStdString());
+    //    }
+    //    demux_handler_->SetPushCallbackFunction(std::bind(&ElementWidget::DemuxCallback, this, std::placeholders::_1));
+    //    demux_handler_->SetCallbackEnable(true);
+    //}
+    //else
+    //{
+    //    demux_handler_->SetCallbackEnable(false);
+    //    demux_handler_->SetNextHandler(nullptr);
+    //    if (!mux_handler_)
+    //    {
+    //        mux_handler_ = new AVMuxHandler();
+    //    }
+    //    else
+    //    {
+    //        mux_handler_->Stop();
+    //    }
+    //    auto codec_param = demux_handler_->CopyVideoParameters();
+    //    int extra_data_size = 0;
+    //    uint8_t extra_data[4096] = { 0 };
+    //    ret = demux_handler_->CopyCodecExtraData(extra_data, extra_data_size);
 
-        ret = mux_handler_->Open(url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
-        if (ret != 0)
-        {
-            qDebug() << "mux_handler_ open failed";
-            return false;
-        }
+    //    ret = mux_handler_->Open(server_url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
+    //    if (ret != 0)
+    //    {
+    //        qDebug() << "mux_handler_ open failed";
+    //        return -1;
+    //    }
 
-        demux_handler_->SetNextHandler(mux_handler_);
-    }
-    return true;
+    //    demux_handler_->SetNextHandler(mux_handler_);
+    //}
+    return 0;
 	//capture_handler_->Start();
 }
 
-bool ElementWidget::StartHandle()
+int ElementWidget::StartHandle()
 {
     if (!is_librtmp_method_)
     {
-        if (mux_handler_->IsExit())
+        if (mux_handler_ && mux_handler_->IsExit())
         {
             mux_handler_->Start();
         }
@@ -400,4 +418,34 @@ void ElementWidget::OnConfigAndStartHandler()
         return;
     }
     StartHandle();
+}
+
+void ElementWidget::DestoryAllHandler()
+{
+    if (rtmp_pusher_)
+    {
+        rtmp_pusher_->Stop();
+        rtmp_pusher_ = nullptr;
+    }
+    if (mux_handler_)
+    {
+        mux_handler_->Stop();
+        mux_handler_ = nullptr;
+    }
+    if (v_decode_handler_)
+    {
+        v_decode_handler_->Stop();
+        v_decode_handler_ = nullptr;
+    }
+    if (demux_handler_)
+    {
+        demux_handler_->Stop();
+        demux_handler_ = nullptr;
+    }
+    if (view_)
+    {
+        view_->DestoryView();
+        view_ = nullptr;
+    }
+
 }

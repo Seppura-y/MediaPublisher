@@ -56,8 +56,25 @@ int AVDecodeHandler::Open(AVCodecParameters* param)
 
 void AVDecodeHandler::Handle(AVHandlerPackage* pkg)
 {
-	av_type_ = pkg->av_type_;
-	pkt_list_.Push(pkg->payload_.packet_);
+	if (!pkg)
+	{
+		cout << "pkg is null" << endl;
+		return;
+	}
+	if (pkg->av_type_ == AVHandlerPackageAVType::AVHANDLER_PACKAGE_AV_TYPE_VIDEO &&
+		pkg->type_ == AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET &&
+		pkg->payload_.packet_ == nullptr)
+	{
+		cout << "AVHandlerPackage payload is null" << endl;
+		return;
+	}
+
+	else
+	{
+		pkt_list_.Push(pkg->payload_.packet_);
+	}
+
+	return;
 }
 
 void AVDecodeHandler::Loop()
@@ -126,7 +143,7 @@ void AVDecodeHandler::CreateFrame()
 void AVDecodeHandler::GetPlayFrame(AVFrame* frame)
 {
 	unique_lock<mutex> lock(mtx_);
-	if (play_frame_ != nullptr || is_need_play_)
+	if (play_frame_ != nullptr && is_need_play_)
 	{
 		int ret = av_frame_ref(frame, play_frame_);//decodec_frame_    -------->  ref count = 2
 		if (ret != 0)
@@ -161,4 +178,10 @@ int AVDecodeHandler::GetPpsSize()
 {
 	unique_lock<mutex> lock(mtx_);
 	return decoder_.GetPpsSize();
+}
+
+void AVDecodeHandler::SetNeedPlay(bool status)
+{
+	unique_lock<mutex> lock(mtx_);
+	is_need_play_ = status;
 }

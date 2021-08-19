@@ -31,6 +31,7 @@ public:
 	virtual int InitView(int width, int height, PixFormat fmt, void* win_id = nullptr) = 0;
 	virtual int DestoryView() = 0;
 	virtual int ResetView() = 0;
+	virtual void SetWindowId(void* win);
 protected:
 	virtual int DrawView(uint8_t* buffer, int size) = 0;
 	virtual int DrawView(uint8_t* y_buffer, int y_size, uint8_t* u_buffer, int u_size, uint8_t* v_buffer, int v_size) = 0;

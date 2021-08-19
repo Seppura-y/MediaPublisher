@@ -22,12 +22,19 @@ public:
 protected:
 	virtual void Loop() override;
 	virtual void Handle(AVHandlerPackage* pkt) override;
+
+	int64_t DurationScale(int64_t duration,AVRational src_timebase);
 private:
 	AVDemuxer demuxer_;
 	std::string url_;
 
 	int video_index_ = -1;
 	int audio_index_ = -1;
+
+	bool is_local_file_ = false;
+	bool is_first_packet_ = true;
+	int64_t start_time_ = -1;
+	int64_t total_duration_ = 0;
 };
 
 #endif

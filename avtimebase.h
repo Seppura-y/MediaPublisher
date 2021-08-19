@@ -32,6 +32,7 @@ public:
 	void ResetTime();
 	uint32_t GetAudioPts();
 	uint32_t GetVideoPts();
+	int64_t GetCurrentTimeMSec();
 
 protected:
 
@@ -40,8 +41,6 @@ private:
 	{
 		start_time_ = GetCurrentTimeMSec();
 	}
-	int64_t GetCurrentTimeMSec();
-
 
 	static AVPublishTime* publish_time_;
 	int64_t start_time_;

@@ -187,6 +187,9 @@
     <ClCompile Include="item_set_dialog.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
+    <ClCompile Include="av_video_scaler.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="title.ui">
@@ -344,6 +347,9 @@
       <Filter>Header Files\rtmp_proc</Filter>
     </ClInclude>
     <ClInclude Include="av_bs_filter.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_video_scaler.h">
       <Filter>Header Files\media</Filter>
     </ClInclude>
   </ItemGroup>

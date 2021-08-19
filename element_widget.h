@@ -43,8 +43,9 @@ protected:
     void SetVideoSeqHeaderNeeded(bool status);
     void SetAudioSeqHeaderNeeded(bool status);
 
-    bool ConfigHandlers();
-    bool StartHandle();
+    int ConfigHandlers();
+    int StartHandle();
+    void DestoryAllHandler();
 
 signals:
     //void selected(int x, int y);

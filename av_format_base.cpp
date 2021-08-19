@@ -291,3 +291,15 @@ int AVFormatBase::GetCodecExtraData(uint8_t* buffer, int& size)
 	}
 	return 0;
 }
+
+AVRational* AVFormatBase::GetVideoTimebase()
+{
+	unique_lock<mutex> lock(mtx_);
+	return video_timebase_;
+}
+
+AVRational* AVFormatBase::GetAudioTimebase()
+{
+	unique_lock<mutex> lock(mtx_);
+	return audio_timebase_;
+}

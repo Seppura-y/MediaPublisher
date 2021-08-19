@@ -99,3 +99,9 @@ int IVideoView::ScaleView(int width, int height)
 
 	return 0;
 }
+
+void IVideoView::SetWindowId(void* win)
+{
+	unique_lock<mutex> lock(mtx_);
+	window_id_ = win;
+}

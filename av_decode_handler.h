@@ -14,6 +14,7 @@ public:
 	virtual void Handle(AVHandlerPackage* pkg) override;
 	void GetPlayFrame(AVFrame* frame);
 
+	void SetNeedPlay(bool status);
 	uint8_t* GetSpsData();
 	uint8_t* GetPpsData();
 	int GetSpsSize();

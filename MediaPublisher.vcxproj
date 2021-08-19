@@ -112,6 +112,7 @@
     <ClCompile Include="av_mux_handler.cpp" />
     <ClCompile Include="av_screen_capturer.cpp" />
     <ClCompile Include="av_screen_cap_handler.cpp" />
+    <ClCompile Include="av_video_scaler.cpp" />
     <ClCompile Include="base_handler.cpp" />
     <ClCompile Include="camera_menu.cpp" />
     <ClCompile Include="capture_widget.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="av_mux_handler.h" />
     <ClInclude Include="av_screen_capturer.h" />
     <ClInclude Include="av_screen_cap_handler.h" />
+    <ClInclude Include="av_video_scaler.h" />
     <ClInclude Include="base_handler.h" />
     <ClInclude Include="bytes.h" />
     <QtMoc Include="capture_widget.h" />
