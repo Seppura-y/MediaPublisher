@@ -12,7 +12,8 @@ class AVDecodeHandler : public IAVBaseHandler
 public:
 	int Open(AVCodecParameters* param);
 	virtual void Handle(AVHandlerPackage* pkg) override;
-	void GetPlayFrame(AVFrame* frame);
+	//void GetPlayFrame(AVFrame* frame);
+	AVFrame* GetPlayFrame();
 
 	void SetNeedPlay(bool status);
 	uint8_t* GetSpsData();

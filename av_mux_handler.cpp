@@ -117,14 +117,14 @@ void AVMuxHandler::Loop()
 		if (!pkt || !pkt->data)
 		{
 			av_packet_free(&pkt);
-			this_thread::sleep_for(1ms);
+			//this_thread::sleep_for(1ms);
 			continue;
 		}
 		cout << "w" << pkt->size <<" " << flush;
 		muxer_.WriteData(pkt);
 		av_packet_free(&pkt);
 
-		this_thread::sleep_for(1ms);
+		//this_thread::sleep_for(1ms);
 	}
 
 	muxer_.WriteTrailer();

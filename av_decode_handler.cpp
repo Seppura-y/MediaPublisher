@@ -68,12 +68,11 @@ void AVDecodeHandler::Handle(AVHandlerPackage* pkg)
 		cout << "AVHandlerPackage payload is null" << endl;
 		return;
 	}
-
 	else
 	{
 		pkt_list_.Push(pkg->payload_.packet_);
 	}
-
+	av_packet_unref(pkg->payload_.packet_);
 	return;
 }
 
@@ -81,27 +80,29 @@ void AVDecodeHandler::Loop()
 {
 	AVHandlerPackage package;
 	int ret = -1;
-	CreateFrame();
+	if (!decoded_frame_)
+	{
+		decoded_frame_ = av_frame_alloc();
+	}
 	while (!is_exit_)
 	{
 		AVPacket* pkt = pkt_list_.Pop();
-		if (pkt == nullptr)
+
+		if (pkt == nullptr) 
 		{
-			this_thread::sleep_for(1ms);
+			//this_thread::sleep_for(1ms);
 			continue;
 		}
 
-		do
-		{
-			ret = decoder_.Send(pkt);
-			this_thread::sleep_for(1ms);
-		} while (ret == 0);
+		ret = decoder_.Send(pkt);
+		//this_thread::sleep_for(1ms);
 		av_packet_unref(pkt);
 
 		ret = decoder_.Recv(decoded_frame_);
 		if (ret != 0)
 		{
-			this_thread::sleep_for(1ms);
+			av_frame_unref(decoded_frame_);
+			//this_thread::sleep_for(1ms);
 			continue;
 		}
 
@@ -113,21 +114,25 @@ void AVDecodeHandler::Loop()
 			}
 			av_frame_ref(play_frame_, decoded_frame_);
 		}
-
 		IAVBaseHandler* next = GetNextHandler();
 		if (next)
 		{
 			package.av_type_ = this->av_type_;
-			package.payload_.frame_ = decoded_frame_;//decodec_frame_ ------> will be unref by ffmpeg before receiving new frame from the decoder
+			package.payload_.frame_ = decoded_frame_;
 			package.type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_FRAME;
 			next->Handle(&package);
 		}
+		av_frame_unref(decoded_frame_);
 	}
 
 	if (decoded_frame_)
 	{
 		unique_lock<mutex> lock(mtx_);
 		av_frame_free(&decoded_frame_);
+	}
+	if (play_frame_)
+	{
+		av_frame_free(&play_frame_);
 	}
 }
 
@@ -140,20 +145,33 @@ void AVDecodeHandler::CreateFrame()
 	}
 }
 
-void AVDecodeHandler::GetPlayFrame(AVFrame* frame)
+AVFrame* AVDecodeHandler::GetPlayFrame()
 {
 	unique_lock<mutex> lock(mtx_);
-	if (play_frame_ != nullptr && is_need_play_)
+	if (play_frame_ && is_need_play_)
 	{
-		int ret = av_frame_ref(frame, play_frame_);//decodec_frame_    -------->  ref count = 2
-		if (ret != 0)
-		{
-			cout << "GetPlayFrame failed" << endl;
-		}
-
-		av_frame_unref(play_frame_);//decodec_frame_    -------->  ref count = 1
+		//AVFrame* frame = av_frame_alloc();
+		//av_frame_move_ref(frame, play_frame_);
+		//return frame;
+		return play_frame_;
 	}
+	return nullptr;
 }
+
+//void AVDecodeHandler::GetPlayFrame(AVFrame* frame)
+//{
+//	unique_lock<mutex> lock(mtx_);
+//	if (play_frame_ != nullptr && is_need_play_)
+//	{
+//		int ret = av_frame_ref(frame, play_frame_);//decodec_frame_    -------->  ref count = 2
+//		if (ret != 0)
+//		{
+//			cout << "GetPlayFrame failed" << endl;
+//		}
+//
+//		av_frame_unref(play_frame_);//decodec_frame_    -------->  ref count = 1
+//	}
+//}
 
 
 uint8_t* AVDecodeHandler::GetSpsData()

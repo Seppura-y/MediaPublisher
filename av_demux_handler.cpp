@@ -45,34 +45,34 @@ void AVDemuxHandler::Loop()
 		{
 			if (is_local_file_)
 			{
-				if (pkt->data && pkt->size > 0 && is_first_packet_)
+				if (pkt->data && (pkt->size > 0) && (pkt->stream_index == video_index_))
 				{
-					//start_time_ = AVPublishTime::GetInstance()->GetCurrentTimeMSec();
-					start_time_ = GetCurrentTimeMsec();
-					is_first_packet_ = false;
+					if (is_first_packet_)
+					{
+						start_time_ = GetCurrentTimeMsec();
+						is_first_packet_ = false;
+					}
+					AVRational src_rational;
+					src_rational.den = demuxer_.GetVideoTimebase()->den;
+					src_rational.num = demuxer_.GetVideoTimebase()->num;
+					int64_t duration = DurationScale(pkt->duration, src_rational);
+					int64_t pts = DurationScale(pkt->pts, src_rational);
+					total_duration_ += duration;
+					SleepForMsec(duration);
+
 				}
-				AVRational src_rational;
-				src_rational.den = demuxer_.GetVideoTimebase()->den;
-				src_rational.num = demuxer_.GetVideoTimebase()->num;
-				int64_t duration = DurationScale(pkt->duration, src_rational);
-				total_duration_ += duration;
-				//SleepForMsec(duration);
-				//SleepForMsec(40);
-				
-
-				//int64_t current_time = AVPublishTime::GetInstance()->GetCurrentTimeMSec();
-				//int64_t current_time = GetCurrentTimeMsec();
-				//int64_t diff = current_time - start_time_;
-				//if (diff < total_duration_)
-				//{
-				//	//this_thread::sleep_for(40ms);
-				//	//cout << "demux handler continue" << endl;
-				//	continue;
-				//}
-
-				this_thread::sleep_for(30ms);
+				else if (pkt->data && (pkt->size > 0) && (pkt->stream_index == audio_index_))
+				{
+					av_packet_unref(pkt);
+					continue;
+				}
+				else
+				{
+					av_packet_unref(pkt);
+					continue;
+				}
 			}
-			
+
 			if (is_callback_enable_)
 			{
 				callable_object_(pkt);
@@ -90,12 +90,11 @@ void AVDemuxHandler::Loop()
 				av_packet_unref(pkt);
 			}
 		}
-		else
+		else if (demuxer_.is_end_of_file())
 		{
-			cout << "demux handler exit " << endl;
-			//is_exit_ = true;
-			cout << total_duration_;
+			is_exit_ = true;
 		}
+
 		if (!demuxer_.is_network_connected())
 		{
 			demuxer_.OpenContext(url_.c_str());
@@ -115,6 +114,7 @@ void AVDemuxHandler::Stop()
 {
 	IAVBaseHandler::Stop();
 	demuxer_.CloseContext();
+	demuxer_.SetFormatContext(nullptr);
 }
 
 

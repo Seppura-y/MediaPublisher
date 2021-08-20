@@ -29,7 +29,7 @@ void AVScreenCapHandler::Loop()
 		frame_ = capturer_.GetCapturedFrame();
 		if (!frame_)
 		{
-			this_thread::sleep_for(1ms);
+			//this_thread::sleep_for(1ms);
 			continue;
 		}
 		//long long now_sec = NowMs() * 1000;
@@ -41,7 +41,7 @@ void AVScreenCapHandler::Loop()
 
 		if (!next_)
 		{
-			this_thread::sleep_for(1ms);
+			//this_thread::sleep_for(1ms);
 			av_frame_unref(frame);
 			av_frame_free(&frame);
 			continue;
@@ -56,7 +56,7 @@ void AVScreenCapHandler::Loop()
 		{
 			next->Handle(&pkg);
 		}
-		this_thread::sleep_for(1ms);
+		//this_thread::sleep_for(1ms);
 	}
 
 }

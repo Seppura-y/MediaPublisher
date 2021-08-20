@@ -66,11 +66,12 @@ void FilePreviewWidget::SetWidgets(int count)
 		grid_widgets_layout_->addWidget(element_widgets_list_[i], i / row, i % row);
 	}
 
-	for (int i = count; i < count; i++)
+	for (int i = count; i < remain; i++)
 	{
 		if (element_widgets_list_[i])
 		{
 			//disconnect slots
+			grid_widgets_layout_->removeWidget(element_widgets_list_[i]);
 			delete element_widgets_list_[i];
 			element_widgets_list_[i] = nullptr;
 		}

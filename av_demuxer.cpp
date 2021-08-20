@@ -54,6 +54,11 @@ int AVDemuxer::Read(AVPacket* pkt)
 	}
 
 	int ret = av_read_frame(fmt_ctx_, pkt);
+	if (ret == AVERROR_EOF)
+	{
+		is_end_of_file_ = true;
+		cout << "read frame end of file " << endl;
+	}
 	PRINT_ERR_I(ret);
 
 	last_read_time_ = GetCurrentTimeMsec();

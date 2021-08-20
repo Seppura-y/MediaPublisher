@@ -19,6 +19,8 @@ public:
 	uint8_t* GetPpsData();
 	int GetSpsSize();
 	int GetPpsSize();
+
+	bool is_end_of_file() { std::unique_lock<std::mutex> lock(mtx_); return is_end_of_file_; }
 protected:
 	virtual void Loop() override;
 	virtual void Handle(AVHandlerPackage* pkt) override;
@@ -33,6 +35,7 @@ private:
 
 	bool is_local_file_ = false;
 	bool is_first_packet_ = true;
+	bool is_end_of_file_ = false;
 	int64_t start_time_ = -1;
 	int64_t total_duration_ = 0;
 };

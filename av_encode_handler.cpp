@@ -100,14 +100,13 @@ void AVEncodeHandler::Handle(AVHandlerPackage* pkg)
 
 	if (is_pause_)
 	{
-		av_frame_unref(pkg->payload_.frame_);
-		av_frame_free(&pkg->payload_.frame_);
+		//av_frame_free(&pkg->payload_.frame_);
 	}
 	else
 	{
 		frame_list_.Push(pkg->payload_.frame_);
 	}
-
+	av_frame_unref(pkg->payload_.frame_);
 	return;
 }
 
@@ -126,25 +125,30 @@ void AVEncodeHandler::Loop()
 	{
 		if (is_pause_)
 		{
-			this_thread::sleep_for(1ms);
+			//this_thread::sleep_for(1ms);
 			continue;
 		}
 
 		AVFrame* frame = frame_list_.Pop();
-		if (frame == nullptr)
+		if (frame != nullptr && (frame->data[0] == nullptr || frame->linesize[0] == 0))
 		{
-			this_thread::sleep_for(1ms);
+			//this_thread::sleep_for(1ms);
+			//av_frame_free(&frame);
+			av_frame_unref(frame);
 			continue;
 		}
-
-		frame->pts = (encoded_count_++) * (encoder_.get_codec_ctx()->time_base.den) / (encoder_.get_codec_ctx()->time_base.num);
+		if (frame)
+		{
+			frame->pts = (encoded_count_++) * (encoder_.get_codec_ctx()->time_base.den) / (encoder_.get_codec_ctx()->time_base.num);
+		}
 
 		ret = encoder_.Send(frame);
-		av_frame_free(&frame);
+		//av_frame_free(&frame);
+		av_frame_unref(frame);
 		if (ret != 0)
 		{
 			cout << "encode handler : send frame failed " << endl;
-			this_thread::sleep_for(1ms);
+			//this_thread::sleep_for(1ms);
 			continue;
 		}
 
@@ -152,7 +156,14 @@ void AVEncodeHandler::Loop()
 		if (ret != 0)
 		{
 			cout << "encode handler : recv packet failed " << endl;
-			this_thread::sleep_for(1ms);
+			av_packet_unref(pkt);
+			//this_thread::sleep_for(1ms);
+			continue;
+		}
+		if (pkt->buf == nullptr || pkt->size == 0 || pkt->data == nullptr)
+		{
+			//this_thread::sleep_for(1ms);
+			av_packet_unref(pkt);
 			continue;
 		}
 
@@ -165,6 +176,7 @@ void AVEncodeHandler::Loop()
 			}
 			else
 			{
+				av_packet_unref(pkt);
 				continue;
 			}
 		}
@@ -174,11 +186,13 @@ void AVEncodeHandler::Loop()
 			{
 				pkg->av_type_ = AVHandlerPackageAVType::AVHANDLER_PACKAGE_AV_TYPE_VIDEO;
 				pkg->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
-				pkg->payload_.packet_ = av_packet_alloc();
-				av_packet_move_ref(pkg->payload_.packet_, pkt);
+				pkg->payload_.packet_ = pkt;
+				//pkg->payload_.packet_ = av_packet_alloc();
+				//av_packet_move_ref(pkg->payload_.packet_, pkt);
 				//av_packet_ref(pkg->payload_.packet_, pkt);
 				GetNextHandler()->Handle(pkg);
-				av_packet_unref(pkg->payload_.packet_);
+				//av_packet_unref(pkg->payload_.packet_);
+				av_packet_unref(pkt);
 			}
 			else
 			{

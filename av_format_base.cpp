@@ -168,7 +168,6 @@ int AVFormatBase::CloseContext()
 			* take care of closing / freeing the IO context.
 			*/
 			avio_close(fmt_ctx_->pb);
-			avformat_free_context(fmt_ctx_);
 		}
 		else if (fmt_ctx_->iformat)
 		{
@@ -176,9 +175,9 @@ int AVFormatBase::CloseContext()
 		}
 		else
 		{
-			avformat_free_context(fmt_ctx_);
-		}
 
+		}
+		avformat_free_context(fmt_ctx_);
 		fmt_ctx_ = nullptr;
 	}
 	return 0;
