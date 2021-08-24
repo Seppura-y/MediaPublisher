@@ -44,7 +44,7 @@ ElementWidget::ElementWidget(int index, QWidget* parent) : QWidget(parent)
     QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSigalSet);
 
     InitUi();
-    is_librtmp_method_ = true;
+    //is_librtmp_method_ = true;
     startTimer(1);
 }
 
@@ -198,6 +198,22 @@ int ElementWidget::ConfigHandlers()
     }
     v_encode_handler_->SetEncodePause(true);
     v_decode_handler_->SetNextHandler(v_encode_handler_);
+
+    auto codec_param = v_encode_handler_->CopyCodecParameters();
+
+    flv_on_metadata_.has_video_ = true;
+    flv_on_metadata_.video_codec_id_ = codec_param->para->codec_id;
+    flv_on_metadata_.video_data_rate_ = codec_param->para->bit_rate;
+    flv_on_metadata_.frame_rate_ = 25 / 1;
+    flv_on_metadata_.width_ = output_width_;
+    flv_on_metadata_.height_ = output_height_;
+
+    flv_on_metadata_.has_audio_ = false;
+    flv_on_metadata_.audio_data_rate_ = 64;
+    flv_on_metadata_.audio_sample_rate_ = 44100;
+    flv_on_metadata_.audio_sample_size_ = 16;
+    flv_on_metadata_.channels_ = 2;
+    flv_on_metadata_.pts_ = 0;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //config view
     if (view_)
@@ -234,10 +250,10 @@ int ElementWidget::ConfigHandlers()
         {
             mux_handler_->Stop();
         }
-        auto codec_param = demux_handler_->CopyVideoParameters();
+        auto codec_param = v_encode_handler_->CopyCodecParameters();
         int extra_data_size = 0;
         uint8_t extra_data[4096] = { 0 };
-        ret = demux_handler_->CopyCodecExtraData(extra_data, extra_data_size);
+        ret = v_encode_handler_->CopyCodecExtraData(extra_data, extra_data_size);
 
         ret = mux_handler_->Open(server_url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
         if (ret != 0)
@@ -262,6 +278,8 @@ int ElementWidget::StartHandle()
             mux_handler_->Start();
         }
     }
+
+    this_thread::sleep_for(50ms);
     
     if (v_encode_handler_)
     {
@@ -345,6 +363,8 @@ void ElementWidget::VideoEncodeCallback(AVPacket* v_pkt)
 {
     if (IsVideoSeqHeaderNeeded())
     {
+        rtmp_pusher_->Post(MessagePayloadType::MESSAGE_PAYLOAD_TYPE_METADATA, &flv_on_metadata_, false);
+        this_thread::sleep_for(1ms);
         VideoSequenceHeaderMessage* video_seq_header = new VideoSequenceHeaderMessage(
             v_encode_handler_->GetSpsData(),
             v_encode_handler_->GetSpsSize(),

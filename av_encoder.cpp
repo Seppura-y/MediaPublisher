@@ -37,6 +37,7 @@ int AVEncoder::Send(AVFrame* frame)
 	int ret = avcodec_send_frame(codec_ctx_, frame);
 	if (ret == AVERROR(EAGAIN) || ret == AVERROR(EOF))
 	{
+		cout << "avcodec_send_frame falied (ret == AVERROR(EAGAIN) || ret == AVERROR(EOF))" << endl;
 		PrintError(ret);
 		return -1;
 	}
@@ -46,6 +47,7 @@ int AVEncoder::Send(AVFrame* frame)
 	}
 	else
 	{
+		cout << "avcodec_send_frame falied" << endl;
 		PrintError(ret);
 		return -1;
 	}

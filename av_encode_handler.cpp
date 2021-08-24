@@ -125,29 +125,48 @@ void AVEncodeHandler::Loop()
 	{
 		if (is_pause_)
 		{
-			//this_thread::sleep_for(1ms);
+			this_thread::sleep_for(1ms);
 			continue;
 		}
+
 
 		AVFrame* frame = frame_list_.Pop();
 		if (frame != nullptr && (frame->data[0] == nullptr || frame->linesize[0] == 0))
 		{
-			//this_thread::sleep_for(1ms);
 			//av_frame_free(&frame);
 			av_frame_unref(frame);
+			this_thread::sleep_for(1ms);
 			continue;
 		}
 		if (frame)
 		{
-			frame->pts = (encoded_count_++) * (encoder_.get_codec_ctx()->time_base.den) / (encoder_.get_codec_ctx()->time_base.num);
+			//cout << "frame" << flush;
+			//frame->pts = (encoded_count_++) * (encoder_.get_codec_ctx()->time_base.den) / (encoder_.get_codec_ctx()->time_base.num);
 		}
-
+		else
+		{
+			this_thread::sleep_for(1ms);
+			continue;
+		}
+		if (frame->pict_type == AV_PICTURE_TYPE_B)
+		{
+			frame->pict_type = AV_PICTURE_TYPE_I;
+			//cout << "pict type I   " << flush;
+		}
+		//else if (frame->pict_type == AV_PICTURE_TYPE_B)
+		//{
+		//	cout << "pict type B   " << flush;
+		//}
+		//else if (frame->pict_type == AV_PICTURE_TYPE_P)
+		//{
+		//	cout << "pict type P   " << flush;
+		//}
 		ret = encoder_.Send(frame);
 		//av_frame_free(&frame);
 		av_frame_unref(frame);
 		if (ret != 0)
 		{
-			cout << "encode handler : send frame failed " << endl;
+			//cout << "encode handler : send frame failed " << endl;
 			//this_thread::sleep_for(1ms);
 			continue;
 		}
@@ -157,13 +176,13 @@ void AVEncodeHandler::Loop()
 		{
 			cout << "encode handler : recv packet failed " << endl;
 			av_packet_unref(pkt);
-			//this_thread::sleep_for(1ms);
+			this_thread::sleep_for(1ms);
 			continue;
 		}
 		if (pkt->buf == nullptr || pkt->size == 0 || pkt->data == nullptr)
 		{
-			//this_thread::sleep_for(1ms);
 			av_packet_unref(pkt);
+			this_thread::sleep_for(1ms);
 			continue;
 		}
 
@@ -200,6 +219,8 @@ void AVEncodeHandler::Loop()
 				continue;
 			}
 		}
+
+		this_thread::sleep_for(1ms);
 	}
 	av_packet_free(&pkt);
 	delete pkg;

@@ -61,4 +61,6 @@ private:
 	bool is_video_seq_header_needed_ = true;
 	bool is_audio_seq_header_needed_ = true;
 	RtmpPusher* rtmp_pusher_ = nullptr;
+
+	FlvOnMetaData flv_on_metadata_;
 };

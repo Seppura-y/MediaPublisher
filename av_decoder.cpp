@@ -49,7 +49,7 @@ int AVDecoder::Send(AVPacket* pkt)
 	}
 	else
 	{
-		PrintError(ret);
+		//PrintError(ret);
 		return -1;
 	}
 }
@@ -68,4 +68,5 @@ int AVDecoder::Recv(AVFrame* frame)
 		cout << "avcodec_receive_frame failed" << endl;
 		return -1;
 	}
+	return ret;
 }

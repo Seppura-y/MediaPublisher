@@ -114,7 +114,7 @@ void AVMuxHandler::Loop()
 	{
 		unique_lock<mutex> lock(mtx_);
 		pkt = pkt_list_.Pop();
-		if (!pkt || !pkt->data)
+		if (!pkt || !pkt->data /*|| pkt->size ==0*/)
 		{
 			av_packet_free(&pkt);
 			//this_thread::sleep_for(1ms);

@@ -56,7 +56,7 @@ void AVScreenCapHandler::Loop()
 		{
 			next->Handle(&pkg);
 		}
-		//this_thread::sleep_for(1ms);
+		this_thread::sleep_for(1ms);
 	}
 
 }

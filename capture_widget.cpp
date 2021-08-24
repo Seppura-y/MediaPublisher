@@ -206,6 +206,21 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 	encode_handler_->SetEncodePause(true);
 	capture_handler_->SetNextHandler(encode_handler_);
 
+	auto codec_param = encode_handler_->CopyCodecParameters();
+
+	flv_on_metadata_.has_video_ = true;
+	flv_on_metadata_.video_codec_id_ = codec_param->para->codec_id;
+	flv_on_metadata_.video_data_rate_ = codec_param->para->bit_rate;
+	flv_on_metadata_.frame_rate_ = 25 / 1;
+	flv_on_metadata_.width_ = output_width_;
+	flv_on_metadata_.height_ = output_height_;
+
+	flv_on_metadata_.has_audio_ = false;
+	flv_on_metadata_.audio_data_rate_ = 64;
+	flv_on_metadata_.audio_sample_rate_ = 44100;
+	flv_on_metadata_.audio_sample_size_ = 16;
+	flv_on_metadata_.channels_ = 2;
+	flv_on_metadata_.pts_ = 0;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//reset mux handler(ffmpeg) or rtmp_pusher(librtmp) according to encode parameters
 	if (is_librtmp_method_)
@@ -239,6 +254,7 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 			qDebug() << "mux_handler_ open failed";
 			return;
 		}
+		encode_handler_->SetNextHandler(mux_handler_);
 	}
 	//capture_handler_->Start();
 }
@@ -253,6 +269,8 @@ void CaptureWidget::OnStartPush()
 			mux_handler_->Start();
 		}
 	}
+
+	this_thread::sleep_for(50ms);
 
 	if (encode_handler_)
 	{
@@ -294,6 +312,9 @@ void CaptureWidget::VideoEncodeCallback(AVPacket* v_pkt)
 {
 	if (IsVideoSeqHeaderNeeded())
 	{
+		rtmp_pusher_->Post(MessagePayloadType::MESSAGE_PAYLOAD_TYPE_METADATA, &flv_on_metadata_, false);
+		this_thread::sleep_for(1ms);
+
 		VideoSequenceHeaderMessage* video_seq_header = new VideoSequenceHeaderMessage(
 			encode_handler_->GetSpsData(),
 			encode_handler_->GetSpsSize(),
@@ -311,8 +332,7 @@ void CaptureWidget::VideoEncodeCallback(AVPacket* v_pkt)
 
 	NALUStruct* nalu = new NALUStruct(v_pkt->data, v_pkt->size);
 	nalu->pts_ = AVPublishTime::GetInstance()->GetVideoPts();
-	rtmp_pusher_->Post(MessagePayloadType::MESSAGE_PAYLOAD_TYPE_NALU,
-		nalu, false);
+	rtmp_pusher_->Post(MessagePayloadType::MESSAGE_PAYLOAD_TYPE_NALU,nalu, false);
 }
 
 void CaptureWidget::AudioEncodeCallback(AVPacket* a_pkt)

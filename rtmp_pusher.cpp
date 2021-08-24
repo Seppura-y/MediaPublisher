@@ -69,18 +69,18 @@ void RtmpPusher::Handle(MessagePayloadType what, MessageBase* msg)
 	{
 		case MessagePayloadType::MESSAGE_PAYLOAD_TYPE_METADATA:
 		{
-			if (!is_first_metadata_sent_)
-			{
-				is_first_metadata_sent_ = true;
-				//write log
-			}
+			//if (!is_first_metadata_sent_)
+			//{
+			//	is_first_metadata_sent_ = true;
+			//	//write log
+			//}
 			FlvOnMetaData* meta = (FlvOnMetaData*)msg;
 			if (!SendMetaData(meta))
 			{
 				cout << "RtmpPusher::Handle FLV_TAG_TYPE_ONMETADATA failed" << endl;
 			}
 
-			delete meta;
+			//delete meta;
 			break;
 		}
 		case MessagePayloadType::MESSAGE_PAYLOAD_TYPE_ADTS_HEADER:

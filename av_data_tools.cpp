@@ -117,22 +117,15 @@ void AVPacketDataList::Clear()
 
 void AVFrameDataList::Push(AVFrame* frm)
 {
+	unique_lock<mutex> lock(mtx_);
+	if (frm_list_.size() > max_list_)
 	{
-		unique_lock<mutex> lock(mtx_);
-		if (frm_list_.size() > max_list_)
-		{
-			av_frame_free(&frm_list_.front());
-			frm_list_.pop_front();
-		}
-		frm_list_.push_back(frm);
+		av_frame_free(&frm_list_.front());
+		frm_list_.pop_front();
 	}
-
-
-	//AVFrame* frame = av_frame_alloc();
-	//av_frame_ref(frame, frm);
-
-
-
+	AVFrame* frame = av_frame_alloc();
+	av_frame_ref(frame, frm);
+	frm_list_.push_back(frame);
 }
 
 AVFrame* AVFrameDataList::Pop()

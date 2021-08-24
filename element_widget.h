@@ -78,6 +78,7 @@ private:
     bool is_video_seq_header_needed_ = true;
     bool is_audio_seq_header_needed_ = true;
 
+    FlvOnMetaData flv_on_metadata_;
 };
 
 #endif
