@@ -148,3 +148,58 @@ void AVFrameDataList::Clear()
 		frm_list_.pop_front();
 	}
 }
+
+
+void AVCachedPacketDataList::Push(AVPacket* packet)
+{
+	unique_lock<mutex> lock(mtx_);
+	AVPacket* pkt = av_packet_alloc();
+	av_packet_ref(pkt, packet);
+	pkt_list_.push_back(pkt);
+	//if (pkt_list_.size() > max_list_)
+	//{
+	//	if (pkt_list_.front()->flags & AV_PKT_FLAG_KEY)
+	//	{
+	//		av_packet_free(&pkt_list_.front());
+	//		pkt_list_.pop_front();
+	//		//return;
+	//	}
+	//	while (!pkt_list_.empty())
+	//	{
+	//		if (pkt_list_.front()->flags & AV_PKT_FLAG_KEY)
+	//		{
+	//			return;
+	//		}
+	//		av_packet_free(&pkt_list_.front());
+	//		pkt_list_.pop_front();
+	//	}
+	//}
+}
+
+AVPacket* AVCachedPacketDataList::Pop()
+{
+	unique_lock<mutex> lock(mtx_);
+	if (pkt_list_.empty())
+	{
+		return nullptr;
+	}
+	AVPacket* pkt = pkt_list_.front();
+	pkt_list_.pop_front();
+	return pkt;
+}
+
+void AVCachedPacketDataList::Clear()
+{
+	unique_lock<mutex> lock(mtx_);
+	while (!pkt_list_.empty())
+	{
+		pkt_list_.pop_front();
+	}
+	return;
+}
+
+int AVCachedPacketDataList::Size()
+{
+	unique_lock<mutex> lock(mtx_);
+	return pkt_list_.size();
+}

@@ -65,7 +65,7 @@ QString ItemSetDialog::GetName()
 
 void ItemSetDialog::GetLocalFilename()
 {
-     filename_ = QFileDialog::getOpenFileName(this, QString::fromLocal8Bit("select file"), QString("./"), QString("Files (*.mp4)"));
+     filename_ = QFileDialog::getOpenFileName(this, QString::fromLocal8Bit("select file"), QString("./"), QString("Files (*.mp4 *.flv)"));
 	 ui.le_url->setText(filename_);
 }
 

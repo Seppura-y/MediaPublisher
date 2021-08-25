@@ -1,7 +1,19 @@
 #include "iav_base_handler.h"
-
 #include <iostream>
 #include <sstream>
+
+extern"C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavutil/avutil.h>
+}
+
+#ifdef _WIN32
+#pragma comment (lib,"avcodec.lib")
+#pragma comment (lib,"avutil.lib")
+
+#endif
+
 using namespace std;
 
 void IAVBaseHandler::Start()
@@ -52,4 +64,10 @@ void IAVBaseHandler::SetCallbackEnable(bool status)
 {
 	unique_lock<mutex> lock(mtx_);
 	is_callback_enable_ = status;
+}
+
+int64_t IAVBaseHandler::ScaleToMsec(int64_t duration, AVRational src_timebase)
+{
+	AVRational dst = { 1,1000 };
+	return av_rescale_q(duration, src_timebase, dst);
 }

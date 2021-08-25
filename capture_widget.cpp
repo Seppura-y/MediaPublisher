@@ -197,7 +197,7 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 	{
 		encode_handler_->Stop();
 	}
-	ret = encode_handler_->EncoderInit(output_width_, output_height_);
+	ret = encode_handler_->EncoderInit(output_width_, output_height_,nullptr);
 	if (ret != 0)
 	{
 		qDebug() << "encode_th_->Open(inWidth, inHeight) failed";
@@ -235,6 +235,7 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 	else
 	{
 		encode_handler_->SetCallbackEnable(false);
+		encode_handler_->SetNextHandler(nullptr);
 		if (!mux_handler_)
 		{
 			mux_handler_ = new AVMuxHandler();
@@ -310,8 +311,8 @@ void CaptureWidget::OnStopPush()
 
 void CaptureWidget::VideoEncodeCallback(AVPacket* v_pkt)
 {
-	if (IsVideoSeqHeaderNeeded())
-	{
+	//if (IsVideoSeqHeaderNeeded())
+	//{
 		rtmp_pusher_->Post(MessagePayloadType::MESSAGE_PAYLOAD_TYPE_METADATA, &flv_on_metadata_, false);
 		this_thread::sleep_for(1ms);
 
@@ -328,7 +329,7 @@ void CaptureWidget::VideoEncodeCallback(AVPacket* v_pkt)
 			video_seq_header, false);
 
 		SetVideoSeqHeaderNeeded(false);
-	}
+	//}
 
 	NALUStruct* nalu = new NALUStruct(v_pkt->data, v_pkt->size);
 	nalu->pts_ = AVPublishTime::GetInstance()->GetVideoPts();

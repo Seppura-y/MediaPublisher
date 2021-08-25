@@ -21,6 +21,7 @@ public:
 	int SetOption(const char* key, const char* value);
 	int SetOption(const char* key, const int value);
 
+
 	virtual AVCodecContext* get_codec_ctx();
 	std::shared_ptr<AVParamWarpper> CopyCodecParam();
 

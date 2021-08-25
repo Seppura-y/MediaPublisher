@@ -18,28 +18,28 @@ using namespace std;
 
 AVFormatBase::AVFormatBase()
 {
-	if (!audio_timebase_)
+	if (!audio_src_timebase_)
 	{
-		audio_timebase_ = new AVRational();
+		audio_src_timebase_ = new AVRational();
 		//audio_timebase_->den
 	}
-	if (!video_timebase_)
+	if (!video_src_timebase_)
 	{
-		video_timebase_ = new AVRational();
+		video_src_timebase_ = new AVRational();
 	}
 }
 
 AVFormatBase::~AVFormatBase()
 {
-	if (audio_timebase_)
+	if (audio_src_timebase_)
 	{
-		delete audio_timebase_;
-		audio_timebase_ = nullptr;
+		delete audio_src_timebase_;
+		audio_src_timebase_ = nullptr;
 	}
-	if (video_timebase_)
+	if (video_src_timebase_)
 	{
-		delete video_timebase_;
-		video_timebase_ = nullptr;
+		delete video_src_timebase_;
+		video_src_timebase_ = nullptr;
 	}
 
 	CloseContext();
@@ -64,15 +64,15 @@ int AVFormatBase::SetFormatContext(AVFormatContext* ctx)
 		if (fmt_ctx_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
 		{
 			audio_index_ = fmt_ctx_->streams[i]->index;
-			audio_timebase_->den = fmt_ctx_->streams[i]->time_base.den;
-			audio_timebase_->num = fmt_ctx_->streams[i]->time_base.num;
+			audio_src_timebase_->den = fmt_ctx_->streams[i]->time_base.den;
+			audio_src_timebase_->num = fmt_ctx_->streams[i]->time_base.num;
 		}
 
 		if (fmt_ctx_->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
 		{
 			video_index_ = i;
-			video_timebase_->den = fmt_ctx_->streams[i]->time_base.den;
-			video_timebase_->num = fmt_ctx_->streams[i]->time_base.num;
+			video_src_timebase_->den = fmt_ctx_->streams[i]->time_base.den;
+			video_src_timebase_->num = fmt_ctx_->streams[i]->time_base.num;
 
 			//get sps pps data
 			if (fmt_ctx_->streams[i]->codecpar->codec_id == AV_CODEC_ID_H264 && fmt_ctx_->streams[i]->codecpar->extradata && fmt_ctx_->streams[i]->codecpar->extradata_size > 0)
@@ -294,11 +294,32 @@ int AVFormatBase::GetCodecExtraData(uint8_t* buffer, int& size)
 AVRational* AVFormatBase::GetVideoTimebase()
 {
 	unique_lock<mutex> lock(mtx_);
-	return video_timebase_;
+	return video_src_timebase_;
 }
 
 AVRational* AVFormatBase::GetAudioTimebase()
 {
 	unique_lock<mutex> lock(mtx_);
-	return audio_timebase_;
+	return audio_src_timebase_;
+}
+
+int AVFormatBase::TimeScale(int index, AVPacket* pkt, AVRational src, long long pts)
+{
+	if (!pkt)
+	{
+		cout << "TimeScale failed : (!pkt)" << endl;
+		return -1;
+	}
+	unique_lock<mutex> lock(mtx_);
+	if (!fmt_ctx_)
+	{
+		cout << "TimeScale failed : (!fmt_ctx_)" << endl;
+		return -1;
+	}
+	AVStream* stream = fmt_ctx_->streams[index];
+	pkt->pts = av_rescale_q_rnd(pkt->pts - pts, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+	pkt->dts = av_rescale_q_rnd(pkt->dts - pts, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+	pkt->duration = av_rescale_q_rnd(pkt->duration, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+	pkt->pos = -1;
+	return 0;
 }

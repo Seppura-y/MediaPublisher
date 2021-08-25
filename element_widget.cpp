@@ -190,7 +190,7 @@ int ElementWidget::ConfigHandlers()
     {
         v_encode_handler_->Stop();
     }
-    ret = v_encode_handler_->EncoderInit(para->para->width, para->para->height);
+    ret = v_encode_handler_->EncoderInit(para->para->width, para->para->height,demux_handler_->GetVideoSrcTimebase());
     if (ret != 0)
     {
         qDebug() << "encode_th_->Open(inWidth, inHeight) failed";
@@ -327,8 +327,8 @@ void ElementWidget::DemuxCallback(AVPacket* pkt)
     {
         if (rtmp_pusher_)
         {
-            if (IsVideoSeqHeaderNeeded())
-            {
+            //if (IsVideoSeqHeaderNeeded())
+            //{
                 VideoSequenceHeaderMessage* video_seq_header = new VideoSequenceHeaderMessage(
                     demux_handler_->GetSpsData(),
                     demux_handler_->GetSpsSize(),
@@ -338,7 +338,7 @@ void ElementWidget::DemuxCallback(AVPacket* pkt)
                 rtmp_pusher_->Post(MessagePayloadType::MESSAGE_PAYLOAD_TYPE_VIDEO_SEQ,
                     video_seq_header, false);
                 SetVideoSeqHeaderNeeded(false);
-            }
+            //}
 
             NALUStruct* nalu = new NALUStruct(pkt->data, pkt->size);
             nalu->pts_ = AVPublishTime::GetInstance()->GetVideoPts();

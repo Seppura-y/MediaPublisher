@@ -65,7 +65,8 @@ int AVDecoder::Recv(AVFrame* frame)
 	int ret = avcodec_receive_frame(codec_ctx_, frame);
 	if (ret != 0)
 	{
-		cout << "avcodec_receive_frame failed" << endl;
+		//cout << "avcodec_receive_frame failed" << endl;
+		//PrintError(ret);
 		return -1;
 	}
 	return ret;

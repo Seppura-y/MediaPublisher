@@ -93,36 +93,47 @@ void AVDecodeHandler::Loop()
 			//this_thread::sleep_for(1ms);
 			continue;
 		}
-
+		int64_t pts = pkt->pts;
+		int64_t dts = pkt->dts;
+		int64_t duration = pkt->duration;
 		ret = decoder_.Send(pkt);
 		//this_thread::sleep_for(1ms);
 		av_packet_unref(pkt);
 
-		ret = decoder_.Recv(decoded_frame_);
-		if (ret != 0)
+		while (1)
 		{
+			ret = decoder_.Recv(decoded_frame_);
+			if (ret != 0)
+			{
+				av_frame_unref(decoded_frame_);
+				//this_thread::sleep_for(1ms);
+				//continue;
+				break;
+			}
+			decoded_frame_->pts;
+			decoded_frame_->pkt_pts;
+			decoded_frame_->pkt_dts;
+			decoded_frame_->pkt_duration;
+
+			if (is_need_play_)
+			{
+				if (play_frame_ == nullptr)
+				{
+					play_frame_ = av_frame_alloc();
+				}
+				av_frame_ref(play_frame_, decoded_frame_);
+			}
+			IAVBaseHandler* next = GetNextHandler();
+			if (next)
+			{
+				package.av_type_ = this->av_type_;
+				package.payload_.frame_ = decoded_frame_;
+				package.type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_FRAME;
+				next->Handle(&package);
+			}
 			av_frame_unref(decoded_frame_);
-			//this_thread::sleep_for(1ms);
-			continue;
 		}
 
-		if (is_need_play_)
-		{
-			if (play_frame_ == nullptr)
-			{
-				play_frame_ = av_frame_alloc();
-			}
-			av_frame_ref(play_frame_, decoded_frame_);
-		}
-		IAVBaseHandler* next = GetNextHandler();
-		if (next)
-		{
-			package.av_type_ = this->av_type_;
-			package.payload_.frame_ = decoded_frame_;
-			package.type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_FRAME;
-			next->Handle(&package);
-		}
-		av_frame_unref(decoded_frame_);
 	}
 
 	if (decoded_frame_)
