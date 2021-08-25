@@ -44,7 +44,7 @@ ElementWidget::ElementWidget(int index, QWidget* parent) : QWidget(parent)
     QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSigalSet);
 
     InitUi();
-    //is_librtmp_method_ = true;
+    is_librtmp_method_ = true;
     startTimer(1);
 }
 
@@ -190,7 +190,7 @@ int ElementWidget::ConfigHandlers()
     {
         v_encode_handler_->Stop();
     }
-    ret = v_encode_handler_->EncoderInit(para->para->width, para->para->height);
+    ret = v_encode_handler_->EncoderInit(para->para->width, para->para->height,demux_handler_->GetVideoSrcTimebase());
     if (ret != 0)
     {
         qDebug() << "encode_th_->Open(inWidth, inHeight) failed";

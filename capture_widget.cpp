@@ -197,7 +197,7 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 	{
 		encode_handler_->Stop();
 	}
-	ret = encode_handler_->EncoderInit(output_width_, output_height_);
+	ret = encode_handler_->EncoderInit(output_width_, output_height_,nullptr);
 	if (ret != 0)
 	{
 		qDebug() << "encode_th_->Open(inWidth, inHeight) failed";

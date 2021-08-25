@@ -10,6 +10,8 @@ public:
 
 	std::shared_ptr<AVParamWarpper> CopyVideoParameters();
 	std::shared_ptr<AVParamWarpper> CopyAudioParameters();
+	AVRational* GetVideoSrcTimebase();
+	AVRational* GetAudioSrcTimebase();
 
 	int GetVideoIndex();
 	int GetAudioIndex();
@@ -25,7 +27,7 @@ protected:
 	virtual void Loop() override;
 	virtual void Handle(AVHandlerPackage* pkt) override;
 
-	int64_t DurationScale(int64_t duration,AVRational src_timebase);
+	int64_t ScaleToMsec(int64_t duration,AVRational src_timebase);
 private:
 	AVDemuxer demuxer_;
 	std::string url_;

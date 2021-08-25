@@ -72,4 +72,18 @@ private:
 	std::mutex mtx_;
 };
 
+
+class AVCachedPacketDataList
+{
+public:
+
+	void Push(AVPacket* packet);
+	AVPacket* Pop();
+	void Clear();
+	int Size();
+private:
+	std::list<AVPacket*> pkt_list_;
+	int max_list_ = 100;
+	std::mutex mtx_;
+};
 #endif

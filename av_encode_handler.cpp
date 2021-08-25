@@ -25,7 +25,7 @@ static int GetCpuNumber()
 	return info.dwNumberOfProcessors;
 }
 
-int AVEncodeHandler::EncoderInit(int out_width, int out_height)
+int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_timebase)
 {
 	unique_lock<mutex> lock(mtx_);
 	AVCodecContext* codec_ctx = encoder_.CreateContext(AV_CODEC_ID_H264, false);
@@ -46,8 +46,8 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height)
 	codec_ctx->thread_count = GetCpuNumber();
 
 	codec_ctx->max_b_frames = 0;
-	codec_ctx->gop_size = 50;
-	codec_ctx->bit_rate = 20 * 1024 * 8;
+	codec_ctx->gop_size = 25;
+	codec_ctx->bit_rate = 500 * 1024;
 
 	encoder_.SetCodecContext(codec_ctx);
 
@@ -80,6 +80,15 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height)
 		return -1;
 	}
 
+	if (src_timebase)
+	{
+		if (!media_src_timebase_)
+		{
+			media_src_timebase_ = new AVRational();
+		}
+		media_src_timebase_->num = src_timebase->num;
+		media_src_timebase_->den = src_timebase->den;
+	}
 	return 0;
 }
 
@@ -138,12 +147,7 @@ void AVEncodeHandler::Loop()
 			this_thread::sleep_for(1ms);
 			continue;
 		}
-		if (frame)
-		{
-			//cout << "frame" << flush;
-			//frame->pts = (encoded_count_++) * (encoder_.get_codec_ctx()->time_base.den) / (encoder_.get_codec_ctx()->time_base.num);
-		}
-		else
+		if(!frame)
 		{
 			this_thread::sleep_for(1ms);
 			continue;
@@ -151,17 +155,40 @@ void AVEncodeHandler::Loop()
 		if (frame->pict_type == AV_PICTURE_TYPE_B)
 		{
 			frame->pict_type = AV_PICTURE_TYPE_I;
-			//cout << "pict type I   " << flush;
 		}
-		//else if (frame->pict_type == AV_PICTURE_TYPE_B)
-		//{
-		//	cout << "pict type B   " << flush;
-		//}
-		//else if (frame->pict_type == AV_PICTURE_TYPE_P)
-		//{
-		//	cout << "pict type P   " << flush;
-		//}
+		if (media_src_timebase_)
+		{
+			if (frame->pts)
+			{
+				int64_t scaled_pts = ScaleToMsec(frame->pts, *media_src_timebase_);
+				frame->pts = scaled_pts;
+			}
+			if (frame->pkt_pts)
+			{
+				int64_t scaled_pkt_pts = ScaleToMsec(frame->pkt_pts, *media_src_timebase_);
+				frame->pkt_pts = scaled_pkt_pts;
+			}
+			if (frame->pkt_dts)
+			{
+				int64_t scaled_dts = ScaleToMsec(frame->pkt_dts, *media_src_timebase_);
+				frame->pkt_dts = scaled_dts;
+			}
+			if (frame->pkt_duration)
+			{
+				int64_t scaled_duration = ScaleToMsec(frame->pkt_duration, *media_src_timebase_);
+				frame->pkt_duration = scaled_duration;
+			}
+		}
+		else
+		{
+			frame->pts = (encoded_count_++) * (encoder_.get_codec_ctx()->time_base.den) / (encoder_.get_codec_ctx()->time_base.num);
+			frame->pkt_pts = frame->pts;
+			frame->pkt_dts = frame->pts;
+		}
+
 		ret = encoder_.Send(frame);
+
+		int64_t du = frame->pkt_duration;
 		//av_frame_free(&frame);
 		av_frame_unref(frame);
 		if (ret != 0)
@@ -185,41 +212,55 @@ void AVEncodeHandler::Loop()
 			this_thread::sleep_for(1ms);
 			continue;
 		}
-
-		if (is_callback_enable_)
+		pkt->pts;
+		pkt->dts;
+		if (pkt->duration == 0)
 		{
-			if (callable_object_)
+			pkt->duration = du;
+		}
+		pkt->duration;
+
+		cache_pkt_list_.Push(pkt);
+		av_packet_unref(pkt);
+
+		if (cache_pkt_list_.Size() >= 100)
+		{
+			start_push_ = true;
+		}
+		if (start_push_)
+		{
+			if (is_callback_enable_)
 			{
-				callable_object_(pkt);
-				av_packet_unref(pkt);
+				AVPacket* pkt = cache_pkt_list_.Pop();
+				if (callable_object_)
+				{
+					callable_object_(pkt);
+					av_packet_unref(pkt);
+				}
+				else
+				{
+					av_packet_unref(pkt);
+					continue;
+				}
 			}
 			else
 			{
-				av_packet_unref(pkt);
-				continue;
+				AVPacket* pkt = cache_pkt_list_.Pop();
+				if (GetNextHandler())
+				{
+					pkg->av_type_ = AVHandlerPackageAVType::AVHANDLER_PACKAGE_AV_TYPE_VIDEO;
+					pkg->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
+					pkg->payload_.packet_ = pkt;
+					GetNextHandler()->Handle(pkg);
+					av_packet_unref(pkt);
+				}
+				else
+				{
+					av_packet_unref(pkt);
+					continue;
+				}
 			}
 		}
-		else
-		{
-			if (GetNextHandler())
-			{
-				pkg->av_type_ = AVHandlerPackageAVType::AVHANDLER_PACKAGE_AV_TYPE_VIDEO;
-				pkg->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
-				pkg->payload_.packet_ = pkt;
-				//pkg->payload_.packet_ = av_packet_alloc();
-				//av_packet_move_ref(pkg->payload_.packet_, pkt);
-				//av_packet_ref(pkg->payload_.packet_, pkt);
-				GetNextHandler()->Handle(pkg);
-				//av_packet_unref(pkg->payload_.packet_);
-				av_packet_unref(pkt);
-			}
-			else
-			{
-				av_packet_unref(pkt);
-				continue;
-			}
-		}
-
 		this_thread::sleep_for(1ms);
 	}
 	av_packet_free(&pkt);

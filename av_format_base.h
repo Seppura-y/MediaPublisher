@@ -35,6 +35,8 @@ public:
 	int get_audio_index();
 	int get_video_index();
 
+	int TimeScale(int index, AVPacket* pkt, AVRational src, long long pts);
+
 	AVRational* GetVideoTimebase();
 	AVRational* GetAudioTimebase();
 	int GetCodecExtraData(uint8_t* buffer, int& size);
@@ -52,8 +54,8 @@ protected:
 	std::mutex mtx_;
 	AVFormatContext* fmt_ctx_ = nullptr;
 
-	AVRational* audio_timebase_{ nullptr };
-	AVRational* video_timebase_{ nullptr };
+	AVRational* audio_src_timebase_{ nullptr };
+	AVRational* video_src_timebase_{ nullptr };
 
 	int sps_size_ = -1;
 	int pps_size_ = -1;

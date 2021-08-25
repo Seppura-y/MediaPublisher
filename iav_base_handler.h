@@ -51,7 +51,7 @@ public:
 protected:
 	virtual void Loop() = 0;
 	IAVBaseHandler* GetNextHandler();
-
+	int64_t ScaleToMsec(int64_t duration, AVRational src_timebase);
 
 protected:
 	std::mutex mtx_;
