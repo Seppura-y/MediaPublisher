@@ -32,6 +32,10 @@ void AVScreenCapHandler::Loop()
 			//this_thread::sleep_for(1ms);
 			continue;
 		}
+		//int diff = NowMs() - last_proc_time_;
+		//cout << "capture ms : " << diff << " " << endl;
+		//last_proc_time_ = NowMs();
+
 		//long long now_sec = NowMs() * 1000;
 		//frame_->pts = now_sec;
 

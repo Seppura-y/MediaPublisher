@@ -135,6 +135,7 @@ int AVMuxer::WriteHeader()
 		PrintError(ret);
 		return -1;
 	}
+	last_proc_time_ = GetCurrentTimeMsec();
 	return 0;
 }
 
@@ -153,6 +154,7 @@ int AVMuxer::WriteTrailer()
 		PrintError(ret);
 		return -1;
 	}
+	last_proc_time_ = GetCurrentTimeMsec();
 	return 0;
 }
 
@@ -212,6 +214,7 @@ int AVMuxer::WriteData(AVPacket* pkt)
 				return -1;
 			}
 		}
+		last_proc_time_ = GetCurrentTimeMsec();
 	}
 	return 0;
 }
@@ -269,8 +272,6 @@ int AVMuxer::WriteData(AVPacket* pkt)
 //
 //	return 0;
 //}
-
-
 
 
 

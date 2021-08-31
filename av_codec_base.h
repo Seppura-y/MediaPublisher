@@ -17,7 +17,7 @@ public:
 
 	static AVCodecContext* CreateContext(int codec_id,bool is_decode);
 	void SetCodecContext(AVCodecContext* codec_ctx);
-	int OpenContext();
+	int OpenContext(bool is_decode);
 	int SetOption(const char* key, const char* value);
 	int SetOption(const char* key, const int value);
 

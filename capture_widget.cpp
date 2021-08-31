@@ -248,7 +248,12 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 		int extra_data_size = 0;
 		uint8_t extra_data[4096] = { 0 };
 		ret = encode_handler_->CopyCodecExtraData(extra_data, extra_data_size);
-
+		//ret = mux_handler_->MuxerInit(url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
+		//if (ret != 0)
+		//{
+		//	qDebug() << "mux_handler_ init failed";
+		//	return;
+		//}
 		ret = mux_handler_->Open(url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
 		if (ret != 0)
 		{
@@ -293,7 +298,7 @@ void CaptureWidget::OnStartPush()
 
 void CaptureWidget::OnStopPush()
 {
-	if (!encode_handler_ || !mux_handler_ || !rtmp_pusher_ || capture_handler_)
+	if (!encode_handler_ || !mux_handler_ || !capture_handler_)
 	{
 		return;
 	}

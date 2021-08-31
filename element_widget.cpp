@@ -40,7 +40,9 @@ ElementWidget::ElementWidget(int index, QWidget* parent) : QWidget(parent)
     widget_index_ = index;
     this->setAcceptDrops(true);
 
-    QAction* act = menu_.addAction(QString::fromLocal8Bit("set"));
+    QAction* act = menu_.addAction(QString::fromLocal8Bit("cycling"));
+    act->setCheckable(true);
+    act->setChecked(false);
     QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSigalSet);
 
     InitUi();
@@ -128,7 +130,22 @@ void ElementWidget::dropEvent(QDropEvent* ev)
 
 void ElementWidget::OnSigalSet()
 {
-    qDebug() << "on signal set";
+    if (menu_.actions().at(0)->isChecked())
+    {
+        if (demux_handler_)
+        {
+            demux_handler_->set_is_cyling(true);
+            qDebug() << "set cycling true";
+        }
+    }
+    else
+    {
+        if (demux_handler_)
+        {
+            demux_handler_->set_is_cyling(false);
+            qDebug() << "set cycling false";
+        }
+    }
 }
 
 
@@ -225,6 +242,7 @@ int ElementWidget::ConfigHandlers()
         view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
     }
     view_->SetWindowId((void*)this->winId());
+    //view_->SetWindowId(nullptr);
     view_->InitView(para->para);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -255,7 +273,14 @@ int ElementWidget::ConfigHandlers()
         uint8_t extra_data[4096] = { 0 };
         ret = v_encode_handler_->CopyCodecExtraData(extra_data, extra_data_size);
 
-        ret = mux_handler_->Open(server_url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
+        ret = mux_handler_->MuxerInit(server_url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
+        if (ret != 0)
+        {
+            qDebug() << "mux_handler_ init failed";
+            return -1;
+        }
+        //ret = mux_handler_->Open(server_url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
+        ret = mux_handler_->Open();
         if (ret != 0)
         {
             qDebug() << "mux_handler_ open failed";

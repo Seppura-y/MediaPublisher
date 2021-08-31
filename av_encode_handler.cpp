@@ -15,7 +15,10 @@ extern"C"
 #pragma comment (lib,"avutil.lib")
 
 #endif
-
+static long long NowMs()
+{
+	return (clock() / (CLOCKS_PER_SEC / 1000));
+}
 using namespace std;
 
 static int GetCpuNumber()
@@ -42,7 +45,8 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_t
 
 	codec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 	codec_ctx->time_base = { 1,25 };
-	codec_ctx->framerate = { 25,1 };
+	codec_ctx->framerate.num = 25;
+	codec_ctx->framerate.den = 1;
 	codec_ctx->thread_count = GetCpuNumber();
 
 	codec_ctx->max_b_frames = 0;
@@ -61,11 +65,11 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_t
 	{
 		return -1;
 	}
-	isok = encoder_.SetOption("tune", "zerolatency");
-	if (isok != 0)
-	{
-		return -1;
-	}
+	//isok = encoder_.SetOption("tune", "zerolatency");
+	//if (isok != 0)
+	//{
+	//	return -1;
+	//}
 
 	isok = encoder_.SetOption("nal-hrd", "cbr");
 	if (isok != 0)
@@ -73,7 +77,7 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_t
 		return -1;
 	}
 
-	isok = encoder_.OpenContext();
+	isok = encoder_.OpenContext(false);
 	if (isok != 0)
 	{
 		LOGERROR("encode_.OpenContext failed");
@@ -218,6 +222,11 @@ void AVEncodeHandler::Loop()
 			pkt->duration = du;
 		}
 		pkt->duration;
+
+		//int diff = NowMs() - last_proc_time_;
+		//cout << "encode ms : " << diff << " " << endl;
+		//last_proc_time_ = NowMs();
+
 
 		cache_pkt_list_.Push(pkt);
 		av_packet_unref(pkt);

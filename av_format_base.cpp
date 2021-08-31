@@ -56,6 +56,7 @@ int AVFormatBase::SetFormatContext(AVFormatContext* ctx)
 		return 0;
 	}
 	is_network_connected_ = true;
+	last_proc_time_ = GetCurrentTimeMsec();
 
 	audio_index_ = -1;
 	video_index_ = -1;
@@ -140,6 +141,7 @@ int AVFormatBase::TimeoutCallback(void* opaque)
 	AVFormatBase* fmt_ctx = (AVFormatBase*)opaque;
 	if (fmt_ctx->IsTimeout())
 	{
+		cout << "timeout callback" << endl;
 		return 1;
 	}
 	return 0;
@@ -148,10 +150,10 @@ int AVFormatBase::TimeoutCallback(void* opaque)
 bool AVFormatBase::IsTimeout()
 {
 	//unique_lock<mutex> lock(mtx_);
-	if (GetCurrentTimeMsec() - last_read_time_ > connect_timeout_)
+	if (GetCurrentTimeMsec() - last_proc_time_ > connect_timeout_)
 	{
 		is_network_connected_ = false;
-		//last_read_time_ = GetCurrentTimeMsec();  ???
+		last_proc_time_ = GetCurrentTimeMsec();
 		return true;
 	}
 	return false;

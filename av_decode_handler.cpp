@@ -46,7 +46,7 @@ int AVDecodeHandler::Open(AVCodecParameters* param)
 
 	decoder_.SetCodecContext(codec_ctx);
 
-	ret = decoder_.OpenContext();
+	ret = decoder_.OpenContext(true);
 	if (ret != 0)
 	{
 		cout << "decoder_.SetCodecContext(codec_ctx) failed" << endl;

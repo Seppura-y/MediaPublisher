@@ -23,6 +23,7 @@ public:
 	int GetPpsSize();
 
 	bool is_end_of_file() { std::unique_lock<std::mutex> lock(mtx_); return is_end_of_file_; }
+	void set_is_cyling(bool status) { std::unique_lock<std::mutex> lock(mtx_); is_cycling_ = status; }
 protected:
 	virtual void Loop() override;
 	virtual void Handle(AVHandlerPackage* pkt) override;
@@ -36,6 +37,7 @@ private:
 	int audio_index_ = -1;
 
 	bool is_local_file_ = false;
+	bool is_cycling_ = false;
 	bool is_first_packet_ = true;
 	bool is_end_of_file_ = false;
 	int64_t start_time_ = -1;

@@ -65,7 +65,7 @@ protected:
 	int audio_index_ = -1;
 	int video_index_ = -1;
 	int connect_timeout_ = -1;
-	int last_read_time_ = -1;
+	int last_proc_time_ = -1;
 	bool is_network_connected_ = false;
 
 	AVProtocolType protocol_type_ = AVProtocolType::AV_PROTOCOL_TYPE_FILE;

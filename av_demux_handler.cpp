@@ -59,6 +59,7 @@ void AVDemuxHandler::Loop()
 					int64_t pts = ScaleToMsec(demux_pkt->pts, src_rational);
 					total_duration_ += duration;
 					SleepForMsec(duration);
+					SleepForMsec(1);
 				}
 				else if (demux_pkt->data && (demux_pkt->size > 0) && (demux_pkt->stream_index == audio_index_))
 				{
@@ -95,7 +96,14 @@ void AVDemuxHandler::Loop()
 		}
 		else if (demuxer_.is_end_of_file())
 		{
-			is_exit_ = true;
+			if (is_cycling_)
+			{
+				demuxer_.SeekToBeginning();
+			}
+			else
+			{
+				is_exit_ = true;
+			}
 		}
 
 		if (!demuxer_.is_network_connected())

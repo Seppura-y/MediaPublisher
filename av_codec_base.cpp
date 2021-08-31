@@ -76,7 +76,7 @@ void AVCodecBase::SetCodecContext(AVCodecContext* codec_ctx)
 	codec_ctx_ = codec_ctx;
 }
 
-int AVCodecBase::OpenContext()
+int AVCodecBase::OpenContext(bool is_decode)
 {
 	unique_lock<mutex> lock(mtx_);
 	if (codec_ctx_ == nullptr)
@@ -84,7 +84,18 @@ int AVCodecBase::OpenContext()
 		cout << "OpenContext failed : codec_ctx_ is null" << endl;
 		return -1;
 	}
-	int ret = avcodec_open2(codec_ctx_, NULL, NULL);
+	int ret = -1;
+	if (!is_decode)
+	{
+		AVDictionary* dict = nullptr;
+		//av_dict_set(&dict, "tune", "zerolatency", 0);
+		//av_dict_set(&dict, "preset", "ultrafast", 0);
+		ret = avcodec_open2(codec_ctx_, NULL, &dict);
+	}
+	else
+	{
+		ret = avcodec_open2(codec_ctx_, NULL, NULL);
+	}
 	if (ret != 0)
 	{
 		cout << "avcodec_open2 failed" << endl;

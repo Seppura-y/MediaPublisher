@@ -1,0 +1,370 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>qrc;rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+    </Filter>
+    <Filter Include="Translation Files">
+      <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
+      <Extensions>ts</Extensions>
+    </Filter>
+    <Filter Include="Header Files\handler">
+      <UniqueIdentifier>{35bafee3-aac8-4efa-8aec-e270afe92674}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui">
+      <UniqueIdentifier>{ad3dd339-6dff-4d77-ac67-8b7e56ccc601}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\media">
+      <UniqueIdentifier>{fd2b8607-2eac-4964-9ec1-fcf73e37c973}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\media">
+      <UniqueIdentifier>{14016ff4-200d-49aa-8054-b4754d4c0045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\handler">
+      <UniqueIdentifier>{effbc541-333a-440a-926c-10fc2186ee85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{3ea5197a-c4b8-4530-b474-0ec670821c11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\rtmp_proc">
+      <UniqueIdentifier>{d0793550-7789-4250-8f49-75eaa0a3590c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\rtmp_proc">
+      <UniqueIdentifier>{5d70f624-8f8f-49a5-9bc1-2b256a403c96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\librtmp">
+      <UniqueIdentifier>{c829e7cf-1698-4b96-8b07-c434092a5738}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\librtmp">
+      <UniqueIdentifier>{72761fc5-d9d8-4dae-862b-57276a8f0c58}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="media_publisher.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+    <QtUic Include="media_publisher.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="media_publisher.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="title.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="media_publisher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="camera_menu.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="show_widget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="item_listwidget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="av_decode_handler.cpp">
+      <Filter>Source Files\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="av_demux_handler.cpp">
+      <Filter>Source Files\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="av_encode_handler.cpp">
+      <Filter>Source Files\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="av_devide_handler.cpp">
+      <Filter>Source Files\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="av_mux_handler.cpp">
+      <Filter>Source Files\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="av_screen_cap_handler.cpp">
+      <Filter>Source Files\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="av_codec_base.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="av_decoder.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="av_demuxer.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="av_encoder.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="av_format_base.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="av_muxer.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="av_screen_capturer.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="av_data_tools.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="hashswf.c">
+      <Filter>Source Files\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="iav_base_handler.cpp">
+      <Filter>Source Files\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="ivideo_view.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="log.c">
+      <Filter>Source Files\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="configuration_tools.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="rtmp_base.cpp">
+      <Filter>Source Files\rtmp_proc</Filter>
+    </ClCompile>
+    <ClCompile Include="rtmp_pusher.cpp">
+      <Filter>Source Files\rtmp_proc</Filter>
+    </ClCompile>
+    <ClCompile Include="sdl_view.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="semaphore.cpp">
+      <Filter>Source Files\rtmp_proc</Filter>
+    </ClCompile>
+    <ClCompile Include="parseurl.c">
+      <Filter>Source Files\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="rtmp.c">
+      <Filter>Source Files\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="amf.c">
+      <Filter>Source Files\librtmp</Filter>
+    </ClCompile>
+    <ClCompile Include="avtimebase.cpp">
+      <Filter>Source Files\rtmp_proc</Filter>
+    </ClCompile>
+    <ClCompile Include="message_base.cpp">
+      <Filter>Source Files\rtmp_proc</Filter>
+    </ClCompile>
+    <ClCompile Include="base_handler.cpp">
+      <Filter>Source Files\rtmp_proc</Filter>
+    </ClCompile>
+    <ClCompile Include="element_widget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="preview_widget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="capture_widget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="file_preview_widget.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="av_bs_filter.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+    <ClCompile Include="item_set_dialog.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="av_video_scaler.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="title.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="show_widget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="camera_menu.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="preview_widget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="file_preview_widget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="item_set_dialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="title.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="camera_menu.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="show_widget.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="item_listwidget.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="element_widget.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="preview_widget.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="capture_widget.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="file_preview_widget.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+    <QtMoc Include="item_set_dialog.h">
+      <Filter>Header Files\ui</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="av_decode_handler.h">
+      <Filter>Header Files\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="av_demux_handler.h">
+      <Filter>Header Files\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="av_devide_handler.h">
+      <Filter>Header Files\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="av_encode_handler.h">
+      <Filter>Header Files\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="av_mux_handler.h">
+      <Filter>Header Files\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="av_screen_cap_handler.h">
+      <Filter>Header Files\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="av_codec_base.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_decoder.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_demuxer.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_encoder.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_format_base.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_muxer.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_screen_capturer.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_data_tools.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="iav_base_handler.h">
+      <Filter>Header Files\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="bytes.h">
+      <Filter>Header Files\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="dh.h">
+      <Filter>Header Files\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="dhgroups.h">
+      <Filter>Header Files\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="handshake.h">
+      <Filter>Header Files\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="http.h">
+      <Filter>Header Files\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>Header Files\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="configuration_tools.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="timeutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ivideo_view.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="rtmp.h">
+      <Filter>Header Files\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="sdl_view.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="rtmp_sys.h">
+      <Filter>Header Files\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="rtmp_base.h">
+      <Filter>Header Files\rtmp_proc</Filter>
+    </ClInclude>
+    <ClInclude Include="rtmp_pusher.h">
+      <Filter>Header Files\rtmp_proc</Filter>
+    </ClInclude>
+    <ClInclude Include="amf.h">
+      <Filter>Header Files\librtmp</Filter>
+    </ClInclude>
+    <ClInclude Include="base_handler.h">
+      <Filter>Header Files\rtmp_proc</Filter>
+    </ClInclude>
+    <ClInclude Include="avtimebase.h">
+      <Filter>Header Files\rtmp_proc</Filter>
+    </ClInclude>
+    <ClInclude Include="message_base.h">
+      <Filter>Header Files\rtmp_proc</Filter>
+    </ClInclude>
+    <ClInclude Include="media_base.h">
+      <Filter>Header Files\rtmp_proc</Filter>
+    </ClInclude>
+    <ClInclude Include="semaphore.h">
+      <Filter>Header Files\rtmp_proc</Filter>
+    </ClInclude>
+    <ClInclude Include="av_bs_filter.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_video_scaler.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\css\camera_menu.css">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\css\show_widget.css">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\css\title.css">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\css\media_publisher.css">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

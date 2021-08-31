@@ -58,10 +58,30 @@ int AVDemuxer::Read(AVPacket* pkt)
 	{
 		is_end_of_file_ = true;
 		cout << "read frame end of file " << endl;
+		return -1;
 	}
 	//PRINT_ERR_I(ret);
 
-	last_read_time_ = GetCurrentTimeMsec();
+	last_proc_time_ = GetCurrentTimeMsec();
+	return 0;
+}
+
+int AVDemuxer::SeekToBeginning()
+{
+	unique_lock<mutex> lock(mtx_);
+	if (!fmt_ctx_)
+	{
+		cout << "fmt_ctx_ is null seek failed" << endl;
+		return -1;
+	}
+
+	int ret = av_seek_frame(fmt_ctx_, video_index_, 0, AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD);
+	if (ret < 0)
+	{
+		cout << "av_seek_frame failed" << endl;
+		PrintError(ret);
+		return -1;
+	}
 
 	return 0;
 }
