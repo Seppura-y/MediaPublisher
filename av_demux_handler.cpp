@@ -58,8 +58,8 @@ void AVDemuxHandler::Loop()
 					int64_t duration = ScaleToMsec(demux_pkt->duration, src_rational);
 					int64_t pts = ScaleToMsec(demux_pkt->pts, src_rational);
 					total_duration_ += duration;
-					SleepForMsec(duration);
-					SleepForMsec(1);
+					SleepForMsec(duration - 5);
+					//SleepForMsec(20);
 				}
 				else if (demux_pkt->data && (demux_pkt->size > 0) && (demux_pkt->stream_index == audio_index_))
 				{
