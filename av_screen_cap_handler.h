@@ -23,6 +23,8 @@ private:
 	std::mutex mtx_;
 
 	AVFrame* frame_ = nullptr;
+
+	int64_t start_time_ = 0;
 };
 
 #endif

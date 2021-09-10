@@ -63,7 +63,7 @@ protected:
 	bool is_exit_ = true;
 	int thread_index_ = 0;
 
-	int64_t last_proc_time_ = -1;
+	int64_t last_proc_time_ = 0;
 private:
 };
 

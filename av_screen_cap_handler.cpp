@@ -2,6 +2,7 @@
 extern"C"
 {
 #include "libavcodec/avcodec.h"
+#include "libavutil/time.h"
 }
 
 #pragma comment(lib,"avcodec.lib")
@@ -15,6 +16,7 @@ static long long NowMs()
 
 void AVScreenCapHandler::Loop()
 {
+	start_time_ = av_gettime_relative();
 	while (!is_exit_)
 	{
 		{
@@ -38,6 +40,12 @@ void AVScreenCapHandler::Loop()
 
 		//long long now_sec = NowMs() * 1000;
 		//frame_->pts = now_sec;
+		//int64_t now_ms = av_gettime_relative();
+		//frame_->pts = now_ms;
+		//frame_->pkt_pts = now_ms;
+		//frame_->pkt_dts = now_ms;
+		//frame_->pkt_duration = 40;
+		av_get_time_base_q();
 
 		is_need_play_ = true;
 		AVFrame* frame = av_frame_alloc();
@@ -48,6 +56,7 @@ void AVScreenCapHandler::Loop()
 			//this_thread::sleep_for(1ms);
 			av_frame_unref(frame);
 			av_frame_free(&frame);
+			this_thread::sleep_for(40ms);
 			continue;
 		}
 
@@ -60,7 +69,7 @@ void AVScreenCapHandler::Loop()
 		{
 			next->Handle(&pkg);
 		}
-		this_thread::sleep_for(1ms);
+		this_thread::sleep_for(40ms);
 	}
 
 }

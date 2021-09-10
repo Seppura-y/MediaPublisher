@@ -97,7 +97,7 @@ void AVDecodeHandler::Loop()
 		int64_t dts = pkt->dts;
 		int64_t duration = pkt->duration;
 		ret = decoder_.Send(pkt);
-		//this_thread::sleep_for(1ms);
+
 		av_packet_unref(pkt);
 
 		while (1)

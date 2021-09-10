@@ -56,10 +56,10 @@ void AVDemuxHandler::Loop()
 					src_rational.den = demuxer_.GetVideoTimebase()->den;
 					src_rational.num = demuxer_.GetVideoTimebase()->num;
 					int64_t duration = ScaleToMsec(demux_pkt->duration, src_rational);
-					int64_t pts = ScaleToMsec(demux_pkt->pts, src_rational);
-					total_duration_ += duration;
-					SleepForMsec(duration - 5);
-					//SleepForMsec(20);
+					//int64_t pts = ScaleToMsec(demux_pkt->pts, src_rational);
+					//total_duration_ += duration;
+					SleepForMsec(duration);
+					//SleepForMsec(40);
 				}
 				else if (demux_pkt->data && (demux_pkt->size > 0) && (demux_pkt->stream_index == audio_index_))
 				{
@@ -77,10 +77,10 @@ void AVDemuxHandler::Loop()
 			demux_pkt->dts;
 			demux_pkt->duration;
 			
-			if (is_callback_enable_)
-			{
-				callable_object_(demux_pkt);
-			}
+			//if (is_callback_enable_)
+			//{
+			//	callable_object_(demux_pkt);
+			//}
 			if (GetNextHandler() && demux_pkt->stream_index == video_index_)
 			{
 				AVHandlerPackage payload;

@@ -99,7 +99,6 @@ int AVMuxHandler::MuxerInit(std::string url, AVCodecParameters* v_param, AVRatio
 int AVMuxHandler::Open()
 {
 	unique_lock<mutex> lock(mtx_);
-
 	AVFormatContext* fmt_ctx = muxer_.OpenContext(url_.c_str(), video_param_->para, audio_param_->para, protocol_type_);
 	if (!fmt_ctx)
 	{
@@ -129,7 +128,7 @@ int AVMuxHandler::Open()
 		muxer_.SetVideoTimebase(video_param_->time_base);
 	}
 
-	muxer_.SetTimeout(1000);
+
 	return 0;
 }
 
@@ -241,13 +240,26 @@ void AVMuxHandler::Loop()
 
 		int diff = NowMs() - last_proc_time_;
 		cout << "mux ms : " << diff << " " << endl;
-		last_proc_time_ = NowMs();
 
+		//int64_t before_time = NowMs();
+		//int64_t after_time = 0;
+		//int64_t diff_time = 0;
 		//cout << "w" << pkt->size <<" " << flush;
-		muxer_.WriteData(pkt);
+		SleepForMsec(pkt->duration);
+		//pkt->duration;
+		int ret = muxer_.WriteData(pkt);
+		if (ret == 0)
+		{
+			last_proc_time_ = NowMs();
+		}
+		//after_time = NowMs();
+		//diff_time = before_time - after_time;
+		//cout << "before : " << before_time << flush;
+		//cout << "  after : " << after_time << flush;
+		//cout << "  mux ms : " << diff_time << endl;
 		av_packet_free(&pkt);
 
-		this_thread::sleep_for(1ms);
+		//this_thread::sleep_for(1ms);
 
 		if (!muxer_.is_network_connected())
 		{

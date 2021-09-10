@@ -49,6 +49,7 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_t
 	codec_ctx->framerate.den = 1;
 	codec_ctx->thread_count = GetCpuNumber();
 
+	AVCodecParameters par;
 	codec_ctx->max_b_frames = 0;
 	codec_ctx->gop_size = 50;
 	codec_ctx->bit_rate = 20 * 1024 * 8;
@@ -65,11 +66,11 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_t
 	{
 		return -1;
 	}
-	//isok = encoder_.SetOption("tune", "zerolatency");
-	//if (isok != 0)
-	//{
-	//	return -1;
-	//}
+	isok = encoder_.SetOption("tune", "zerolatency");
+	if (isok != 0)
+	{
+		return -1;
+	}
 
 	isok = encoder_.SetOption("nal-hrd", "cbr");
 	if (isok != 0)
