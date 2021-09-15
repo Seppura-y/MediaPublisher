@@ -68,4 +68,5 @@ int AVEncoder::Recv(AVPacket* packet)
 	{
 		return -1;
 	}
+	return 0;
 }

@@ -15,12 +15,15 @@ public:
 
 	int SetVideoTimebase(AVRational* src);
 	int SetAudioTimebase(AVRational* src);
+
+	void ResetVideoBeginPts() { std::unique_lock<std::mutex> lock(mtx_); v_begin_pts_ = -1; }
+	void ResetAudioBeginPts() { std::unique_lock<std::mutex> lock(mtx_); a_begin_pts_ = -1; }
 protected:
 
 private:
 	std::string url_;
-	long long v_begin_pts_ = -1;
-	long long a_begin_pts_ = -1;
+	int64_t v_begin_pts_ = -1;
+	int64_t a_begin_pts_ = -1;
 	AVRational* v_src_timebase_ = nullptr;
 	AVRational* a_src_timebase_ = nullptr;
 

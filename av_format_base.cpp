@@ -27,6 +27,10 @@ AVFormatBase::AVFormatBase()
 	{
 		video_src_timebase_ = new AVRational();
 	}
+	if (!video_src_frame_rate_)
+	{
+		video_src_frame_rate_ = new AVRational();
+	}
 }
 
 AVFormatBase::~AVFormatBase()
@@ -40,6 +44,11 @@ AVFormatBase::~AVFormatBase()
 	{
 		delete video_src_timebase_;
 		video_src_timebase_ = nullptr;
+	}
+	if (video_src_frame_rate_)
+	{
+		delete video_src_frame_rate_;
+		video_src_frame_rate_ = nullptr;
 	}
 
 	CloseContext();
@@ -75,6 +84,8 @@ int AVFormatBase::SetFormatContext(AVFormatContext* ctx)
 			video_src_timebase_->den = fmt_ctx_->streams[i]->time_base.den;
 			video_src_timebase_->num = fmt_ctx_->streams[i]->time_base.num;
 
+			video_src_frame_rate_->num = fmt_ctx_->streams[i]->avg_frame_rate.num;
+			video_src_frame_rate_->den = fmt_ctx_->streams[i]->avg_frame_rate.den;
 			//get sps pps data
 			if (fmt_ctx_->streams[i]->codecpar->codec_id == AV_CODEC_ID_H264 && fmt_ctx_->streams[i]->codecpar->extradata && fmt_ctx_->streams[i]->codecpar->extradata_size > 0)
 			{
@@ -228,6 +239,7 @@ std::shared_ptr<AVParamWarpper> AVFormatBase::CopyVideoParameters()
 	}
 	shr_ptr.reset(AVParamWarpper::Create());
 	avcodec_parameters_copy(shr_ptr->para, fmt_ctx_->streams[video_index_]->codecpar);
+
 	*shr_ptr->time_base = fmt_ctx_->streams[video_index_]->time_base;
 	return shr_ptr;
 }
@@ -303,6 +315,11 @@ AVRational* AVFormatBase::GetAudioTimebase()
 {
 	unique_lock<mutex> lock(mtx_);
 	return audio_src_timebase_;
+}
+AVRational* AVFormatBase::GetVideoFrameRate()
+{
+	unique_lock<mutex> lock(mtx_);
+	return video_src_frame_rate_;
 }
 
 int AVFormatBase::TimeScale(int index, AVPacket* pkt, AVRational src, long long pts)

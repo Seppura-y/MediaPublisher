@@ -245,6 +245,16 @@ bool AVScreenCapturer::ScaleInit()
         sws_freeContext(sws_ctx_);
         sws_ctx_ = nullptr;
     }
+    if (plinesize_)
+    {
+        delete plinesize_;
+        plinesize_ = nullptr;
+    }
+    if (pImgData_)
+    {
+        delete pImgData_;
+        pImgData_ = nullptr;
+    }
     if (out_width_ < 0 || out_height_ < 0 || screen_width_ < 0 || screen_height_ < 0)
     {
         LOGERROR("(out_Width_ < 0 || out_Height_ < 0 || g_Width_ < 0 || g_Height_ < 0)")

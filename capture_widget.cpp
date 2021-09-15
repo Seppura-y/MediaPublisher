@@ -139,33 +139,32 @@ void CaptureWidget::DrawFrame()
 
 void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 {
-	qDebug() << "on reset param";
-	output_width_ = param.output_width_;
-	output_height_ = param.output_height_;
 	url_ = param.url_;
 	bool ret = false;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//reset view according to output dimension
-	if (view_)
-	{
-		view_->ResetView();
-	}
-	else if(!view_)
-	{
-		view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
-	}
-	view_->InitView(output_width_, output_height_, PixFormat::PIX_FORMAT_YUV420P, (void*)this->winId());
-	if (output_width_ > this->width() || output_height_ > this->height())
-	{
-		view_->ScaleView(this->width(), this->height());
-	}
-	else
-	{
-		view_->ScaleView(output_width_, output_height_);
-	}
+	//reset view
+	output_width_ = param.output_width_;
+	output_height_ = param.output_height_;
+	//if (view_)
+	//{
+	//	view_->ResetView();
+	//}
+	//else if(!view_)
+	//{
+	//	view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
+	//}
+	//view_->InitView(output_width_, output_height_, PixFormat::PIX_FORMAT_YUV420P, (void*)this->winId());
+	//if (output_width_ > this->width() || output_height_ > this->height())
+	//{
+	//	view_->ScaleView(this->width(), this->height());
+	//}
+	//else
+	//{
+	//	view_->ScaleView(output_width_, output_height_);
+	//}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//reset caputure handler  according to output dimension
+	//reset caputure handler 
 	if (!capture_handler_)
 	{
 		capture_handler_ = new AVScreenCapHandler();
@@ -186,21 +185,21 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 		qDebug() << "capture_th_->InitScale(inWidth, inHeight) failed";
 		return;
 	}
-
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//reset encode handler according to output dimension
+	//reset encode handler 
 	if (!encode_handler_)
 	{
 		encode_handler_ = new AVEncodeHandler();
+
 	}
 	else
 	{
 		encode_handler_->Stop();
 	}
-	ret = encode_handler_->EncoderInit(output_width_, output_height_,nullptr);
+	ret = encode_handler_->EncoderInit(output_width_, output_height_, nullptr, nullptr);
 	if (ret != 0)
 	{
-		qDebug() << "encode_th_->Open(inWidth, inHeight) failed";
+		qDebug() << "encode_handler_->EncoderInit failed";
 		return;
 	}
 	encode_handler_->SetEncodePause(true);
@@ -222,7 +221,7 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 	flv_on_metadata_.channels_ = 2;
 	flv_on_metadata_.pts_ = 0;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//reset mux handler(ffmpeg) or rtmp_pusher(librtmp) according to encode parameters
+	//reset mux handler(ffmpeg) or rtmp_pusher(librtmp)
 	if (is_librtmp_method_)
 	{
 		if (!rtmp_pusher_)
@@ -242,6 +241,7 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 		}
 		else
 		{
+			mux_handler_->CloseContextIO();
 			mux_handler_->Stop();
 		}
 		auto codec_param = encode_handler_->CopyCodecParameters();
@@ -262,13 +262,39 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 		}
 		encode_handler_->SetNextHandler(mux_handler_);
 	}
-	//capture_handler_->Start();
+
 }
 
 
 void CaptureWidget::OnStartPush()
 {
 	if (!is_librtmp_method_)
+	{
+		if (mux_handler_->IsExit())
+		{
+			mux_handler_->Start();
+		}
+	}
+
+	if (view_)
+	{
+		view_->ResetView();
+	}
+	else if (!view_)
+	{
+		view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
+	}
+	view_->InitView(output_width_, output_height_, PixFormat::PIX_FORMAT_YUV420P, (void*)this->winId());
+	if (output_width_ > this->width() || output_height_ > this->height())
+	{
+		view_->ScaleView(this->width(), this->height());
+	}
+	else
+	{
+		view_->ScaleView(output_width_, output_height_);
+	}
+
+	if (mux_handler_)
 	{
 		if (mux_handler_->IsExit())
 		{
@@ -302,14 +328,25 @@ void CaptureWidget::OnStopPush()
 	{
 		return;
 	}
+	if (!capture_handler_->IsExit())
+	{
+		capture_handler_->Stop();
+	}
+
 	encode_handler_->SetEncodePause(true);
 	if (!encode_handler_->IsExit())
 	{
 		encode_handler_->Stop();
 	}
+
 	if (!mux_handler_->IsExit())
 	{
 		mux_handler_->Stop();
+	}
+
+	if (view_)
+	{
+		view_->ResetView();
 	}
 }
 

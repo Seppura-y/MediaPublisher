@@ -211,6 +211,8 @@ int AVMuxHandler::Open(std::string url, AVCodecParameters* v_param, AVRational* 
 		muxer_.SetAudioTimebase(audio_param_->time_base);
 		muxer_.SetVideoTimebase(video_param_->time_base);
 	}
+	muxer_.ResetAudioBeginPts();
+	muxer_.ResetVideoBeginPts();
 	return 0;
 }
 
@@ -226,6 +228,8 @@ void AVMuxHandler::Handle(AVHandlerPackage* pkg)
 void AVMuxHandler::Loop()
 {
 	AVPacket* pkt = nullptr;
+	muxer_.ResetAudioBeginPts();
+	muxer_.ResetVideoBeginPts();
 	muxer_.WriteHeader();
 	while (!is_exit_)
 	{
@@ -245,7 +249,7 @@ void AVMuxHandler::Loop()
 		//int64_t after_time = 0;
 		//int64_t diff_time = 0;
 		//cout << "w" << pkt->size <<" " << flush;
-		SleepForMsec(pkt->duration);
+		//SleepForMsec(pkt->duration);
 		//pkt->duration;
 		int ret = muxer_.WriteData(pkt);
 		if (ret == 0)
@@ -269,6 +273,7 @@ void AVMuxHandler::Loop()
 	}
 
 	muxer_.WriteTrailer();
+	muxer_.CloseContext();
 	muxer_.SetFormatContext(nullptr);
 	pkt_list_.Clear();
 }

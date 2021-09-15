@@ -73,7 +73,7 @@ void PreviewWidget::OnPbPushClicked()
 void PreviewWidget::OnPbStopClicked()
 {
 	emit SigStopPush();
-	pb_push_->setEnabled(true);
+	pb_push_->setEnabled(false);
 	pb_stop_->setEnabled(false);
 }
 
@@ -84,6 +84,7 @@ void PreviewWidget::OnPbResetClicked()
 	param.output_width_ = le_width_->text().toInt();
 	param.output_height_ = le_height_->text().toInt();
 	param.url_ = le_url_->text();
+	pb_push_->setEnabled(true);
 	emit SigResetParam(param);
 }
 

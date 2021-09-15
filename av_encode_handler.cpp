@@ -1,6 +1,5 @@
 #include "av_encode_handler.h"
 #include <iostream>
-#include <Windows.h>
 
 extern"C"
 {
@@ -13,8 +12,12 @@ extern"C"
 #pragma comment (lib,"avformat.lib")
 #pragma comment (lib,"avcodec.lib")
 #pragma comment (lib,"avutil.lib")
-
 #endif
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 static long long NowMs()
 {
 	return (clock() / (CLOCKS_PER_SEC / 1000));
@@ -28,7 +31,7 @@ static int GetCpuNumber()
 	return info.dwNumberOfProcessors;
 }
 
-int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_timebase)
+int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_timebase,AVRational* src_frame_rate)
 {
 	unique_lock<mutex> lock(mtx_);
 	AVCodecContext* codec_ctx = encoder_.CreateContext(AV_CODEC_ID_H264, false);
@@ -44,12 +47,40 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_t
 	codec_ctx->height = out_height;
 
 	codec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-	codec_ctx->time_base = { 1,25 };
-	codec_ctx->framerate.num = 25;
-	codec_ctx->framerate.den = 1;
+
+	if (src_timebase)
+	{
+		if (!media_src_timebase_)
+		{
+			media_src_timebase_ = new AVRational();
+		}
+		media_src_timebase_->num = src_timebase->num;
+		media_src_timebase_->den = src_timebase->den;
+		codec_ctx->time_base = { media_src_timebase_->num,media_src_timebase_->den };
+	}
+	else
+	{
+		codec_ctx->time_base = av_get_time_base_q();
+	}
+
+	if (src_frame_rate)
+	{
+		if (!video_src_frame_rate_)
+		{
+			video_src_frame_rate_ = new AVRational();
+		}
+		video_src_frame_rate_->num = src_frame_rate->num;
+		video_src_frame_rate_->den = src_frame_rate->den;
+		codec_ctx->framerate = { video_src_frame_rate_->num,video_src_frame_rate_->den };
+	}
+	else
+	{
+		codec_ctx->framerate = { 25,1 };
+	}
+	
 	codec_ctx->thread_count = GetCpuNumber();
 
-	AVCodecParameters par;
+	//AVCodecParameters par;
 	codec_ctx->max_b_frames = 0;
 	codec_ctx->gop_size = 50;
 	codec_ctx->bit_rate = 20 * 1024 * 8;
@@ -83,15 +114,6 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_t
 	{
 		LOGERROR("encode_.OpenContext failed");
 		return -1;
-	}
-	if (src_timebase)
-	{
-		if (!media_src_timebase_)
-		{
-			media_src_timebase_ = new AVRational();
-		}
-		media_src_timebase_->num = src_timebase->num;
-		media_src_timebase_->den = src_timebase->den;
 	}
 	return 0;
 }
@@ -156,39 +178,40 @@ void AVEncodeHandler::Loop()
 			this_thread::sleep_for(1ms);
 			continue;
 		}
+		frame->pict_type = AV_PICTURE_TYPE_NONE;
 		if (frame->pict_type == AV_PICTURE_TYPE_B)
 		{
 			frame->pict_type = AV_PICTURE_TYPE_I;
 		}
-		if (media_src_timebase_)
-		{
-			if (frame->pts)
-			{
-				int64_t scaled_pts = ScaleToMsec(frame->pts, *media_src_timebase_);
-				frame->pts = scaled_pts;
-			}
-			if (frame->pkt_pts)
-			{
-				int64_t scaled_pkt_pts = ScaleToMsec(frame->pkt_pts, *media_src_timebase_);
-				frame->pkt_pts = scaled_pkt_pts;
-			}
-			if (frame->pkt_dts)
-			{
-				int64_t scaled_dts = ScaleToMsec(frame->pkt_dts, *media_src_timebase_);
-				frame->pkt_dts = scaled_dts;
-			}
-			if (frame->pkt_duration)
-			{
-				int64_t scaled_duration = ScaleToMsec(frame->pkt_duration, *media_src_timebase_);
-				frame->pkt_duration = scaled_duration;
-			}
-		}
-		else
-		{
-			frame->pts = (encoded_count_++) * (encoder_.get_codec_ctx()->time_base.den) / (encoder_.get_codec_ctx()->time_base.num);
-			frame->pkt_pts = frame->pts;
-			frame->pkt_dts = frame->pts;
-		}
+		//if (media_src_timebase_)
+		//{
+		//	if (frame->pts)
+		//	{
+		//		int64_t scaled_pts = ScaleToMsec(frame->pts, *media_src_timebase_);
+		//		frame->pts = scaled_pts;
+		//	}
+		//	if (frame->pkt_pts)
+		//	{
+		//		int64_t scaled_pkt_pts = ScaleToMsec(frame->pkt_pts, *media_src_timebase_);
+		//		frame->pkt_pts = scaled_pkt_pts;
+		//	}
+		//	if (frame->pkt_dts)
+		//	{
+		//		int64_t scaled_dts = ScaleToMsec(frame->pkt_dts, *media_src_timebase_);
+		//		frame->pkt_dts = scaled_dts;
+		//	}
+		//	if (frame->pkt_duration)
+		//	{
+		//		int64_t scaled_duration = ScaleToMsec(frame->pkt_duration, *media_src_timebase_);
+		//		frame->pkt_duration = scaled_duration;
+		//	}
+		//}
+		//else
+		//{
+		//	//frame->pts = (encoded_count_++) * (encoder_.get_codec_ctx()->time_base.den) / (encoder_.get_codec_ctx()->time_base.num);
+		//	//frame->pkt_pts = frame->pts;
+		//	//frame->pkt_dts = frame->pts;
+		//}
 
 		ret = encoder_.Send(frame);
 
@@ -218,25 +241,19 @@ void AVEncodeHandler::Loop()
 		}
 		pkt->pts;
 		pkt->dts;
+		pkt->duration;
 		if (pkt->duration == 0)
 		{
 			pkt->duration = du;
 		}
-		pkt->duration;
-
-		//int diff = NowMs() - last_proc_time_;
-		//cout << "encode ms : " << diff << " " << endl;
-		//last_proc_time_ = NowMs();
-
-
 		cache_pkt_list_.Push(pkt);
 		av_packet_unref(pkt);
 
-		if (cache_pkt_list_.Size() >= 100)
+		if (cache_pkt_list_.Size() >= 10)
 		{
-			start_push_ = true;
+			cache_avaliable_ = true;
 		}
-		if (start_push_)
+		if (cache_avaliable_)
 		{
 			if (is_callback_enable_)
 			{
@@ -271,6 +288,20 @@ void AVEncodeHandler::Loop()
 			}
 		}
 		this_thread::sleep_for(1ms);
+	}
+	frame_list_.Clear();
+	cache_pkt_list_.Clear();
+	encoder_.Send(nullptr);
+	while (1)
+	{
+		encoder_.Recv(pkt);
+		if (pkt->data)
+		{
+			av_packet_unref(pkt);
+		}
+		else
+			break;
+
 	}
 	av_packet_free(&pkt);
 	delete pkg;

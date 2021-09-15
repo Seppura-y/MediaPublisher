@@ -208,7 +208,7 @@ int ElementWidget::ConfigHandlers()
     {
         v_encode_handler_->Stop();
     }
-    ret = v_encode_handler_->EncoderInit(para->para->width, para->para->height,demux_handler_->GetVideoSrcTimebase());
+    ret = v_encode_handler_->EncoderInit(para->para->width, para->para->height,demux_handler_->GetVideoSrcTimebase(),demux_handler_->GetVideoSrcFrameRate());
     if (ret != 0)
     {
         qDebug() << "encode_th_->Open(inWidth, inHeight) failed";

@@ -31,21 +31,14 @@ void AVScreenCapHandler::Loop()
 		frame_ = capturer_.GetCapturedFrame();
 		if (!frame_)
 		{
-			//this_thread::sleep_for(1ms);
 			continue;
 		}
-		//int diff = NowMs() - last_proc_time_;
-		//cout << "capture ms : " << diff << " " << endl;
-		//last_proc_time_ = NowMs();
 
-		//long long now_sec = NowMs() * 1000;
-		//frame_->pts = now_sec;
-		//int64_t now_ms = av_gettime_relative();
-		//frame_->pts = now_ms;
-		//frame_->pkt_pts = now_ms;
-		//frame_->pkt_dts = now_ms;
-		//frame_->pkt_duration = 40;
-		av_get_time_base_q();
+		int64_t now = av_gettime_relative();
+		frame_->pts = now - start_time_;
+		frame_->pkt_dts = now - start_time_;
+		frame_->pkt_pts = now - start_time_;
+		frame_->pkt_duration = av_rescale_q(40, AVRational{ 1,1000 }, av_get_time_base_q());
 
 		is_need_play_ = true;
 		AVFrame* frame = av_frame_alloc();

@@ -39,6 +39,7 @@ public:
 
 	AVRational* GetVideoTimebase();
 	AVRational* GetAudioTimebase();
+	AVRational* GetVideoFrameRate();
 	int GetCodecExtraData(uint8_t* buffer, int& size);
 	uint8_t* GetSpsData();
 	uint8_t* GetPpsData();
@@ -56,6 +57,7 @@ protected:
 
 	AVRational* audio_src_timebase_{ nullptr };
 	AVRational* video_src_timebase_{ nullptr };
+	AVRational* video_src_frame_rate_{ nullptr };
 
 	int sps_size_ = -1;
 	int pps_size_ = -1;

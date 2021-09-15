@@ -9,6 +9,7 @@ public:
 	int Open(std::string url,AVCodecParameters* v_param,AVRational* v_timebase,AVCodecParameters* a_param,AVRational* a_timebase,uint8_t* extra_data,int extra_data_size);
 
 	virtual void Handle(AVHandlerPackage* pkg) override;
+	void CloseContextIO() { std::unique_lock<std::mutex> lock(mtx_); muxer_.CloseContext(); }
 protected:
 	virtual void Loop() override;
 private:

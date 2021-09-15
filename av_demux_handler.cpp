@@ -7,6 +7,7 @@ extern"C"
 {
 #include <libavformat/avformat.h>
 #include <libavutil/avutil.h>
+#include <libavutil/time.h>
 }
 
 #ifdef _WIN32
@@ -39,6 +40,7 @@ bool AVDemuxHandler::OpenAVSource(const char* url,int timeout)
 void AVDemuxHandler::Loop()
 {
 	AVPacket* demux_pkt = av_packet_alloc();
+	start_time_ = av_gettime_relative();
 	while (!is_exit_)
 	{
 		if (demuxer_.Read(demux_pkt) >= 0)
@@ -49,17 +51,16 @@ void AVDemuxHandler::Loop()
 				{
 					if (is_first_packet_)
 					{
-						start_time_ = GetCurrentTimeMsec();
+						start_time_ = av_gettime_relative();
 						is_first_packet_ = false;
 					}
 					AVRational src_rational;
 					src_rational.den = demuxer_.GetVideoTimebase()->den;
 					src_rational.num = demuxer_.GetVideoTimebase()->num;
 					int64_t duration = ScaleToMsec(demux_pkt->duration, src_rational);
-					//int64_t pts = ScaleToMsec(demux_pkt->pts, src_rational);
-					//total_duration_ += duration;
+
 					SleepForMsec(duration);
-					//SleepForMsec(40);
+
 				}
 				else if (demux_pkt->data && (demux_pkt->size > 0) && (demux_pkt->stream_index == audio_index_))
 				{
@@ -192,4 +193,9 @@ AVRational* AVDemuxHandler::GetVideoSrcTimebase()
 AVRational* AVDemuxHandler::GetAudioSrcTimebase()
 {
 	return demuxer_.GetAudioTimebase();
+}
+
+AVRational* AVDemuxHandler::GetVideoSrcFrameRate()
+{
+	return demuxer_.GetVideoFrameRate();
 }

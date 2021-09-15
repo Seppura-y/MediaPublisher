@@ -12,6 +12,7 @@ public:
 	std::shared_ptr<AVParamWarpper> CopyAudioParameters();
 	AVRational* GetVideoSrcTimebase();
 	AVRational* GetAudioSrcTimebase();
+	AVRational* GetVideoSrcFrameRate();
 
 	int GetVideoIndex();
 	int GetAudioIndex();
@@ -35,12 +36,14 @@ private:
 
 	int video_index_ = -1;
 	int audio_index_ = -1;
+	//AVStream** input_streams = nullptr;
 
 	bool is_local_file_ = false;
 	bool is_cycling_ = false;
 	bool is_first_packet_ = true;
 	bool is_end_of_file_ = false;
 	int64_t start_time_ = -1;
+	int64_t last_proc_time_ = -1;
 	int64_t total_duration_ = 0;
 };
 

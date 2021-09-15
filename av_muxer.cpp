@@ -289,9 +289,12 @@ int AVMuxer::TimeScale(int index, AVPacket* pkt, AVRational src, long long pts)
 		return -1;
 	}
 	AVStream* stream = fmt_ctx_->streams[index];
-	pkt->pts = av_rescale_q_rnd(pkt->pts - pts, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-	pkt->dts = av_rescale_q_rnd(pkt->dts - pts, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
-	pkt->duration = av_rescale_q_rnd(pkt->duration, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+	//pkt->pts = av_rescale_q_rnd(pkt->pts - pts, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+	//pkt->dts = av_rescale_q_rnd(pkt->dts - pts, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+	//pkt->duration = av_rescale_q_rnd(pkt->duration, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
+	pkt->pts = av_rescale_q(pkt->pts - pts, src, stream->time_base);
+	pkt->dts = av_rescale_q(pkt->dts - pts, src, stream->time_base);
+	pkt->duration = av_rescale_q(pkt->duration, src, stream->time_base);
 	pkt->pos = -1;
 	return 0;
 }
