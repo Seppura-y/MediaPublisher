@@ -25,6 +25,7 @@ bool AVDemuxHandler::OpenAVSource(const char* url,int timeout)
 	fmt_ctx = demuxer_.OpenContext(url);
 	demuxer_.SetFormatContext(fmt_ctx);
 	url_ = url;
+	time_out_ = timeout;
 	video_index_ = demuxer_.get_video_index();
 	audio_index_ = demuxer_.get_audio_index();
 	if (strstr(url, "mp4") || strstr(url,"flv"))
@@ -33,6 +34,12 @@ bool AVDemuxHandler::OpenAVSource(const char* url,int timeout)
 		return true;
 	}
 	demuxer_.SetTimeout(timeout);
+
+	last_pts_ = -1;
+	last_dts_ = -1;
+	next_pts_ = -1;
+	next_dts_ = -1;
+	is_first_packet_ = true;
 	return true;
 }
 
@@ -40,15 +47,24 @@ bool AVDemuxHandler::OpenAVSource(const char* url,int timeout)
 void AVDemuxHandler::Loop()
 {
 	AVPacket* demux_pkt = av_packet_alloc();
-	start_time_ = av_gettime_relative();
+
 	while (!is_exit_)
 	{
+		if (start_time_ >= 0)
+		{
+			int64_t now_in_tb_q = av_gettime_relative() - start_time_;
+			if (next_dts_ > now_in_tb_q)
+			{
+				continue;
+			}
+		}
 		if (demuxer_.Read(demux_pkt) >= 0)
 		{
 			if (is_local_file_)
 			{
 				if (demux_pkt->data && (demux_pkt->size > 0) && (demux_pkt->stream_index == video_index_))
 				{
+					unique_lock<mutex> lock(mtx_);
 					if (is_first_packet_)
 					{
 						start_time_ = av_gettime_relative();
@@ -57,10 +73,15 @@ void AVDemuxHandler::Loop()
 					AVRational src_rational;
 					src_rational.den = demuxer_.GetVideoTimebase()->den;
 					src_rational.num = demuxer_.GetVideoTimebase()->num;
-					int64_t duration = ScaleToMsec(demux_pkt->duration, src_rational);
+					//int64_t duration = ScaleToMsec(demux_pkt->duration, src_rational);
+					//SleepForMsec(40);
 
-					SleepForMsec(duration);
+					last_dts_ = av_rescale_q(demux_pkt->dts, src_rational, av_get_time_base_q());
+					last_pts_ = av_rescale_q(demux_pkt->pts, src_rational, av_get_time_base_q());
 
+					int64_t duration = av_rescale_q(demux_pkt->duration, src_rational, av_get_time_base_q());
+					next_pts_ = last_pts_ + duration;
+					next_dts_ = last_dts_ + duration;
 				}
 				else if (demux_pkt->data && (demux_pkt->size > 0) && (demux_pkt->stream_index == audio_index_))
 				{
@@ -97,9 +118,12 @@ void AVDemuxHandler::Loop()
 		}
 		else if (demuxer_.is_end_of_file())
 		{
-			if (is_cycling_)
+			if (is_cycling())
 			{
 				demuxer_.SeekToBeginning();
+				
+				is_first_packet_ = true;
+				start_time_ = -1;
 			}
 			else
 			{
@@ -113,6 +137,18 @@ void AVDemuxHandler::Loop()
 		}
 	}
 	av_packet_free(&demux_pkt);
+
+	last_pts_ = -1;
+	last_dts_ = -1;
+	next_pts_ = -1;
+	next_dts_ = -1;
+	is_first_packet_ = true;
+}
+
+void AVDemuxHandler::Set_Restart_Callback(std::function<void(void)> cb)
+{
+	unique_lock<mutex> lock(mtx_);
+	restart_callback_ = cb;
 }
 
 

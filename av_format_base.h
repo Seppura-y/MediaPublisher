@@ -23,6 +23,7 @@ public:
 
 	int SetFormatContext(AVFormatContext* ctx);
 	int CloseContext();
+	int CloseIOContext();
 
 	std::shared_ptr<AVParamWarpper> CopyVideoParameters();
 	std::shared_ptr<AVParamWarpper> CopyAudioParameters();

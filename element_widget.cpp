@@ -52,7 +52,14 @@ ElementWidget::ElementWidget(int index, QWidget* parent) : QWidget(parent)
 
 ElementWidget::ElementWidget(QWidget* parent)
 {
-    
+    QAction* act = menu_.addAction(QString::fromLocal8Bit("cycling"));
+    act->setCheckable(true);
+    act->setChecked(false);
+    QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSigalSet);
+
+    InitUi();
+    //is_librtmp_method_ = true;
+    startTimer(1);
 }
 
 ElementWidget::~ElementWidget()
@@ -93,17 +100,24 @@ void ElementWidget::paintEvent(QPaintEvent* ev)
 
 void ElementWidget::mousePressEvent(QMouseEvent* ev)
 {
+    //if (ev->button() == Qt::RightButton)
+    //{
+    //    cout << " right button clicked" << endl;
+    //}
+    cout << "mouse press event" << endl;
     return QWidget::mousePressEvent(ev);
 }
 void ElementWidget::dragEnterEvent(QDragEnterEvent* ev)
 {
     ev->acceptProposedAction();
+    return QWidget::dragEnterEvent(ev);
 }
 
 void ElementWidget::contextMenuEvent(QContextMenuEvent* ev)
 {
     menu_.exec(QCursor::pos());
     ev->accept();
+    return QWidget::contextMenuEvent(ev);
 }
 
 void ElementWidget::dropEvent(QDropEvent* ev)
@@ -124,8 +138,9 @@ void ElementWidget::dropEvent(QDropEvent* ev)
     this->item_type_ = itemType;
 
     emit SigConfigAndStartHandler();
-    ev->setDropAction(Qt::MoveAction);
-    ev->accept();
+    //ev->setDropAction(Qt::MoveAction);
+    //ev->accept();
+    return QWidget::dropEvent(ev);
 }
 
 
@@ -136,6 +151,7 @@ void ElementWidget::OnSigalSet()
         if (demux_handler_)
         {
             demux_handler_->set_is_cyling(true);
+            mux_handler_->set_is_cyling(true);
             qDebug() << "set cycling true";
         }
     }
@@ -144,6 +160,7 @@ void ElementWidget::OnSigalSet()
         if (demux_handler_)
         {
             demux_handler_->set_is_cyling(false);
+            mux_handler_->set_is_cyling(false);
             qDebug() << "set cycling false";
         }
     }
@@ -241,9 +258,15 @@ int ElementWidget::ConfigHandlers()
     else if (!view_)
     {
         view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
+        view_->SetWindowId((void*)this->winId());
     }
-    view_->SetWindowId((void*)this->winId());
+    //if (view_)
+    //{
+    //    view_->DestoryView();
+    //}
+    //view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
     //view_->SetWindowId(nullptr);
+
     view_->InitView(para->para);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

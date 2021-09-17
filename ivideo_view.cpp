@@ -81,6 +81,7 @@ int IVideoView::DrawFrame(AVFrame* frame)
 	switch (frame->format)
 	{
 	case AV_PIX_FMT_YUV420P:
+	case AV_PIX_FMT_YUVJ420P:
 		return DrawView(frame->data[0], frame->linesize[0], frame->data[1], frame->linesize[1], frame->data[2], frame->linesize[2]);
 	case AV_PIX_FMT_RGBA:
 	case AV_PIX_FMT_ARGB:

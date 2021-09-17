@@ -196,6 +196,19 @@ int AVFormatBase::CloseContext()
 	return 0;
 }
 
+int AVFormatBase::CloseIOContext()
+{
+	unique_lock<mutex> lock(mtx_);
+	if (fmt_ctx_)
+	{
+		if (fmt_ctx_->oformat)
+		{
+			avio_close(fmt_ctx_->pb);
+		}
+	}
+	return 0;
+}
+
 bool AVFormatBase::is_network_connected()
 {
 	unique_lock<mutex> lock(mtx_);

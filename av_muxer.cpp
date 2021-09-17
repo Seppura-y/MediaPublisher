@@ -108,6 +108,7 @@ AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam
 		}
 	}
 
+	fmt_ctx->oformat->flags |= AVFMT_TS_NONSTRICT | AVFMT_TS_DISCONT | AVFMT_NOTIMESTAMPS;
 	ret = avio_open(&fmt_ctx->pb, url, AVIO_FLAG_WRITE);
 	if (ret < 0)
 	{
@@ -206,6 +207,8 @@ int AVMuxer::WriteData(AVPacket* pkt)
 		}
 		else
 		{
+			int64_t aa = INT64_MAX - 10;
+			aa += 11;
 			ret = av_write_frame(fmt_ctx_, pkt);
 			if (ret != 0)
 			{

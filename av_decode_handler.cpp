@@ -99,6 +99,7 @@ void AVDecodeHandler::Loop()
 		ret = decoder_.Send(pkt);
 
 		av_packet_unref(pkt);
+		av_packet_free(&pkt);
 
 		while (1)
 		{
@@ -121,6 +122,7 @@ void AVDecodeHandler::Loop()
 				{
 					play_frame_ = av_frame_alloc();
 				}
+				av_frame_unref(play_frame_);
 				av_frame_ref(play_frame_, decoded_frame_);
 			}
 			IAVBaseHandler* next = GetNextHandler();

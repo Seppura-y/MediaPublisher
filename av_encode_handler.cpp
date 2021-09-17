@@ -164,12 +164,11 @@ void AVEncodeHandler::Loop()
 			continue;
 		}
 
-
 		AVFrame* frame = frame_list_.Pop();
 		if (frame != nullptr && (frame->data[0] == nullptr || frame->linesize[0] == 0))
 		{
-			//av_frame_free(&frame);
 			av_frame_unref(frame);
+			av_frame_free(&frame);
 			this_thread::sleep_for(1ms);
 			continue;
 		}
@@ -216,8 +215,8 @@ void AVEncodeHandler::Loop()
 		ret = encoder_.Send(frame);
 
 		int64_t du = frame->pkt_duration;
-		//av_frame_free(&frame);
 		av_frame_unref(frame);
+		av_frame_free(&frame);
 		if (ret != 0)
 		{
 			//cout << "encode handler : send frame failed " << endl;
@@ -262,10 +261,12 @@ void AVEncodeHandler::Loop()
 				{
 					callable_object_(pkt);
 					av_packet_unref(pkt);
+					av_packet_free(&pkt);
 				}
 				else
 				{
 					av_packet_unref(pkt);
+					av_packet_free(&pkt);
 					continue;
 				}
 			}
@@ -279,15 +280,16 @@ void AVEncodeHandler::Loop()
 					pkg->payload_.packet_ = pkt;
 					GetNextHandler()->Handle(pkg);
 					av_packet_unref(pkt);
+					av_packet_free(&pkt);
 				}
 				else
 				{
 					av_packet_unref(pkt);
+					av_packet_free(&pkt);
 					continue;
 				}
 			}
 		}
-		this_thread::sleep_for(1ms);
 	}
 	frame_list_.Clear();
 	cache_pkt_list_.Clear();

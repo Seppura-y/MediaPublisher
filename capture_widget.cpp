@@ -106,7 +106,10 @@ void CaptureWidget::paintEvent(QPaintEvent* ev)
 
 void CaptureWidget::timerEvent(QTimerEvent* ev)
 {
-	this->DrawFrame();
+	if (is_need_draw_)
+	{
+		this->DrawFrame();
+	}
 }
 
 void CaptureWidget::resizeEvent(QResizeEvent* ev)
@@ -320,6 +323,7 @@ void CaptureWidget::OnStartPush()
 			capture_handler_->Start();
 		}
 	}
+	is_need_draw_ = true;
 }
 
 void CaptureWidget::OnStopPush()
@@ -347,7 +351,11 @@ void CaptureWidget::OnStopPush()
 	if (view_)
 	{
 		view_->ResetView();
+		is_need_draw_ = false;
 	}
+
+	this->resize(this->width()+1, this->height()+1);
+	this->resize(this->width(), this->height());
 }
 
 

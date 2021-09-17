@@ -274,6 +274,7 @@ shared_ptr<AVParamWarpper> AVCodecBase::CopyCodecParam()
 		return param;
 	}
 	param.reset(AVParamWarpper::Create());
+	shared_ptr<AVParamWarpper> warp = make_shared<AVParamWarpper>();
 	*param->time_base = codec_ctx_->time_base;
 	avcodec_parameters_from_context(param->para, codec_ctx_);
 	return param;

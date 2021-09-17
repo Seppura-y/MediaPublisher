@@ -55,7 +55,7 @@ public:
 	void Clear();
 private:
 	std::list<AVPacket*> pkt_list_;
-	int max_list_ = 100;
+	int max_list_ = 500;
 	std::mutex mtx_;
 };
 
@@ -68,7 +68,7 @@ public:
 
 private:
 	std::list<AVFrame*> frm_list_;
-	int max_list_ = 100;
+	int max_list_ = 500;
 	std::mutex mtx_;
 };
 
@@ -83,7 +83,7 @@ public:
 	int Size();
 private:
 	std::list<AVPacket*> pkt_list_;
-	int max_list_ = 100;
+	int max_list_ = 500;
 	std::mutex mtx_;
 };
 #endif

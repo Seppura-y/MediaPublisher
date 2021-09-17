@@ -5,6 +5,7 @@
 extern"C"
 {
 #include <libavformat/avformat.h>
+#include <libavutil/time.h>
 #include <libavutil/avutil.h>
 }
 
@@ -71,7 +72,7 @@ int AVMuxHandler::MuxerInit(std::string url, AVCodecParameters* v_param, AVRatio
 	{
 		has_audio_ = true;
 		audio_param_->para = a_param;
-		audio_param_->time_base = a_timebase;
+		audio_param_->time_base = new AVRational(*a_timebase);
 	}
 
 	if (!v_param || !v_timebase)
@@ -84,7 +85,7 @@ int AVMuxHandler::MuxerInit(std::string url, AVCodecParameters* v_param, AVRatio
 	{
 		has_video_ = true;
 		video_param_->para = v_param;
-		video_param_->time_base = v_timebase;
+		video_param_->time_base = new AVRational(*v_timebase);
 	}
 	if (extradata_)
 	{
@@ -94,6 +95,9 @@ int AVMuxHandler::MuxerInit(std::string url, AVCodecParameters* v_param, AVRatio
 	extradata_size_ = extra_data_size;
 	extradata_ = (uint8_t*)av_malloc(extradata_size_);
 	memcpy(extradata_, extra_data, extradata_size_);
+
+	mux_info_.max_pts = INT64_MIN;
+	mux_info_.min_pts = INT64_MAX;
 }
 
 int AVMuxHandler::Open()
@@ -231,39 +235,56 @@ void AVMuxHandler::Loop()
 	muxer_.ResetAudioBeginPts();
 	muxer_.ResetVideoBeginPts();
 	muxer_.WriteHeader();
+	AVRational src_rational = *(video_param_->time_base);
 	while (!is_exit_)
 	{
-		unique_lock<mutex> lock(mtx_);
+		//unique_lock<mutex> lock(mtx_);
 		pkt = pkt_list_.Pop();
 		if (!pkt || !pkt->data /*|| pkt->size ==0*/)
 		{
 			av_packet_free(&pkt);
-			//this_thread::sleep_for(1ms);
 			continue;
 		}
 
-		int diff = NowMs() - last_proc_time_;
-		cout << "mux ms : " << diff << " " << endl;
+		if (is_first_packet_)
+		{
+			start_time_ = av_rescale_q(pkt->dts, src_rational, av_get_time_base_q());
+			is_first_packet_ = false;
+		}
 
-		//int64_t before_time = NowMs();
-		//int64_t after_time = 0;
-		//int64_t diff_time = 0;
-		//cout << "w" << pkt->size <<" " << flush;
-		//SleepForMsec(pkt->duration);
-		//pkt->duration;
+		int64_t cur_dts_ = av_rescale_q(pkt->dts, src_rational, av_get_time_base_q());
+		if (is_cycling() && cur_dts_ <= mux_info_.last_dts)
+		{
+			//muxer_.WriteTrailer();
+			//muxer_.CloseContext();
+			//muxer_.SetFormatContext(nullptr);
+			//Open();
+			mux_info_.ts_delta += mux_info_.duraion;
+			//muxer_.WriteHeader();
+		}
+
+		mux_info_.last_dts = av_rescale_q(pkt->dts, src_rational, av_get_time_base_q());
+		mux_info_.last_pts = av_rescale_q(pkt->pts, src_rational, av_get_time_base_q());
+
+		int64_t pkt_duration = av_rescale_q(pkt->duration, src_rational, av_get_time_base_q());
+		mux_info_.next_pts = mux_info_.last_pts + pkt_duration;
+		mux_info_.next_dts = mux_info_.last_dts + pkt_duration;
+
+		mux_info_.duraion += pkt_duration;
+
+		pkt->dts += av_rescale_q(mux_info_.ts_delta, av_get_time_base_q(), src_rational);
+		pkt->pts += av_rescale_q(mux_info_.ts_delta, av_get_time_base_q(), src_rational);
+
+		int diff = NowMs() - last_proc_time_;
+
 		int ret = muxer_.WriteData(pkt);
 		if (ret == 0)
 		{
 			last_proc_time_ = NowMs();
 		}
-		//after_time = NowMs();
-		//diff_time = before_time - after_time;
-		//cout << "before : " << before_time << flush;
-		//cout << "  after : " << after_time << flush;
-		//cout << "  mux ms : " << diff_time << endl;
+
 		av_packet_free(&pkt);
 
-		//this_thread::sleep_for(1ms);
 
 		if (!muxer_.is_network_connected())
 		{

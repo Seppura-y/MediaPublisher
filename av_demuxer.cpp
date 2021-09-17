@@ -75,7 +75,7 @@ int AVDemuxer::SeekToBeginning()
 		return -1;
 	}
 
-	int ret = av_seek_frame(fmt_ctx_, video_index_, 0, AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD);
+	int ret = av_seek_frame(fmt_ctx_, video_index_, fmt_ctx_->start_time, AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD);
 	if (ret < 0)
 	{
 		cout << "av_seek_frame failed" << endl;

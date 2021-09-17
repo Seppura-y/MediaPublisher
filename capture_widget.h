@@ -49,6 +49,7 @@ protected:
 	void SetAudioSeqHeaderNeeded(bool status);
 private:
 	bool is_librtmp_method_ = false;
+	bool is_need_draw_ = false;
 	int output_width_ = -1;
 	int output_height_ = -1;
 	QString url_;

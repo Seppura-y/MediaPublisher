@@ -25,6 +25,7 @@ void AVScreenCapHandler::Loop()
 			{
 				//av_frame_free(&frame_);
 				av_frame_unref(frame_);
+				av_frame_free(&frame_);
 				frame_ = nullptr;
 			}
 		}
@@ -61,6 +62,8 @@ void AVScreenCapHandler::Loop()
 		if (next)
 		{
 			next->Handle(&pkg);
+			av_frame_unref(frame);
+			av_frame_free(&frame);
 		}
 		this_thread::sleep_for(40ms);
 	}

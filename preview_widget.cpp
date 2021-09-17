@@ -28,10 +28,10 @@ void PreviewWidget::InitUI()
 
 	pb_push_->setEnabled(true);
 	pb_stop_->setEnabled(false);
-	le_width_->setText("400");
-	le_height_->setText("300");
+	le_width_->setText("1280");
+	le_height_->setText("720");
 	//le_url_->setText("rtmp://107.172.153.24/live/livestream");
-	le_url_->setText("rtmp://192.168.1.152/live/livestream");
+	le_url_->setText("rtmp://192.168.1.152/live/livestream1");
 
 	width_ = le_width_->text().toInt();
 	height_ = le_width_->text().toInt();

@@ -62,6 +62,7 @@ int SDLView::InitView(int width,int height,PixFormat fmt,void* win_id)
 	}
 	else
 	{
+		if(!window_)
 		window_ = SDL_CreateWindowFrom(win_id);
 	}
 	if (!window_)
