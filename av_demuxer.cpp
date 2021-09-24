@@ -26,20 +26,43 @@ static void PrintError(int err)
 #define PRINT_ERR_I(err) if(err != 0) {PrintError(err);return -1;}
 
 
+//AVFormatContext* AVDemuxer::OpenContext(const char* url)
+//{
+//	//mutex mtx;
+//	//unique_lock<mutex> lock(mtx);
+//	AVFormatContext* fmt_ctx = nullptr;
+//	AVDictionary* opt = nullptr;
+//	av_dict_set(&opt, "stimeout", "1000000", 0);
+//	int ret = avformat_open_input(&fmt_ctx, url, nullptr, &opt);
+//	PRINT_ERR_P(ret)
+//
+//	ret = avformat_find_stream_info(fmt_ctx, nullptr);
+//	PRINT_ERR_P(ret)
+//
+//	av_dump_format(fmt_ctx, 0, url, 0);
+//
+//	return fmt_ctx;
+//}
+
 AVFormatContext* AVDemuxer::OpenContext(const char* url)
 {
 	//mutex mtx;
 	//unique_lock<mutex> lock(mtx);
-	AVFormatContext* fmt_ctx = nullptr;
+	AVFormatContext* fmt_ctx = avformat_alloc_context();
+	fmt_ctx->flags |= AVFMT_FLAG_NONBLOCK;
+
+	//AVIOInterruptCB cb = { TimeoutCallback,this };
+	//fmt_ctx->interrupt_callback = cb;
+
 	AVDictionary* opt = nullptr;
 	av_dict_set(&opt, "stimeout", "1000000", 0);
 	int ret = avformat_open_input(&fmt_ctx, url, nullptr, &opt);
 	PRINT_ERR_P(ret)
 
-	ret = avformat_find_stream_info(fmt_ctx, nullptr);
+		ret = avformat_find_stream_info(fmt_ctx, nullptr);
 	PRINT_ERR_P(ret)
 
-	av_dump_format(fmt_ctx, 0, url, 0);
+		av_dump_format(fmt_ctx, 0, url, 0);
 
 	return fmt_ctx;
 }
@@ -85,4 +108,6 @@ int AVDemuxer::SeekToBeginning()
 
 	return 0;
 }
+
+
 

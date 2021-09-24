@@ -178,10 +178,7 @@ void AVEncodeHandler::Loop()
 			continue;
 		}
 		frame->pict_type = AV_PICTURE_TYPE_NONE;
-		if (frame->pict_type == AV_PICTURE_TYPE_B)
-		{
-			frame->pict_type = AV_PICTURE_TYPE_I;
-		}
+
 		//if (media_src_timebase_)
 		//{
 		//	if (frame->pts)

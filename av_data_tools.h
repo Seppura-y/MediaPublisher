@@ -42,7 +42,7 @@ public:
 	AVRational* time_base = nullptr;
 	static AVParamWarpper* Create();
 	~AVParamWarpper();
-private:
+//private:
 	AVParamWarpper();
 };
 

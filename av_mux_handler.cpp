@@ -14,10 +14,10 @@ extern"C"
 #pragma comment (lib,"avutil.lib")
 
 #endif
-static long long NowMs()
-{
-	return (clock() / (CLOCKS_PER_SEC / 1000));
-}
+//static long long NowMs()
+//{
+//	return (clock() / (CLOCKS_PER_SEC / 1000));
+//}
 
 using namespace std;
 
@@ -71,7 +71,8 @@ int AVMuxHandler::MuxerInit(std::string url, AVCodecParameters* v_param, AVRatio
 	else if (a_param && a_timebase)
 	{
 		has_audio_ = true;
-		audio_param_->para = a_param;
+		//audio_param_->para = a_param;
+		avcodec_parameters_copy(audio_param_->para, a_param);
 		audio_param_->time_base = new AVRational(*a_timebase);
 	}
 
@@ -84,7 +85,8 @@ int AVMuxHandler::MuxerInit(std::string url, AVCodecParameters* v_param, AVRatio
 	else if (v_param && v_timebase)
 	{
 		has_video_ = true;
-		video_param_->para = v_param;
+		//video_param_->para = v_param;
+		avcodec_parameters_copy(video_param_->para, v_param);
 		video_param_->time_base = new AVRational(*v_timebase);
 	}
 	if (extradata_)
@@ -98,6 +100,7 @@ int AVMuxHandler::MuxerInit(std::string url, AVCodecParameters* v_param, AVRatio
 
 	mux_info_.max_pts = INT64_MIN;
 	mux_info_.min_pts = INT64_MAX;
+	return 0;
 }
 
 int AVMuxHandler::Open()
@@ -192,6 +195,7 @@ int AVMuxHandler::Open(std::string url, AVCodecParameters* v_param, AVRational* 
 
 	muxer_.SetFormatContext(fmt_ctx);
 	muxer_.SetProtocolType(protocol_type);
+	//muxer_.SetTimeout(1000, true);
 
 	if (!a_timebase && !v_timebase)
 	{
@@ -238,6 +242,18 @@ void AVMuxHandler::Loop()
 	AVRational src_rational = *(video_param_->time_base);
 	while (!is_exit_)
 	{
+		if (!muxer_.is_network_connected())
+		{
+			//cout << "time out" << endl;
+			//muxer_.CloseContext();
+			muxer_.SetFormatContext(nullptr);
+			int ret = Open();
+			if (ret != 0)
+			{
+				continue;
+			}
+			muxer_.WriteHeader();
+		}
 		//unique_lock<mutex> lock(mtx_);
 		pkt = pkt_list_.Pop();
 		if (!pkt || !pkt->data /*|| pkt->size ==0*/)
@@ -275,22 +291,18 @@ void AVMuxHandler::Loop()
 		pkt->dts += av_rescale_q(mux_info_.ts_delta, av_get_time_base_q(), src_rational);
 		pkt->pts += av_rescale_q(mux_info_.ts_delta, av_get_time_base_q(), src_rational);
 
-		int diff = NowMs() - last_proc_time_;
+		int diff = GetCurrentTimeMsec() - last_proc_time_;
 
 		int ret = muxer_.WriteData(pkt);
 		if (ret == 0)
 		{
-			last_proc_time_ = NowMs();
+			last_proc_time_ = GetCurrentTimeMsec();
 		}
 
 		av_packet_free(&pkt);
 
 
-		if (!muxer_.is_network_connected())
-		{
-			cout << "time out" << endl;
-			int ret = Open();
-		}
+		
 	}
 
 	muxer_.WriteTrailer();

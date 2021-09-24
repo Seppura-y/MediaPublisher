@@ -13,6 +13,8 @@ extern"C"
 #pragma comment(lib,"avutil.lib")
 #endif
 
+
+
 using namespace std;
 
 static void PrintError(int err)
@@ -108,14 +110,23 @@ AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam
 		}
 	}
 
-	fmt_ctx->oformat->flags |= AVFMT_TS_NONSTRICT | AVFMT_TS_DISCONT | AVFMT_NOTIMESTAMPS;
+	//fmt_ctx->oformat->flags |= AVFMT_TS_NONSTRICT | AVFMT_TS_DISCONT | AVFMT_NOTIMESTAMPS;
+	//AVIOInterruptCB cb = { TimeoutCallback,this };
+	//fmt_ctx->interrupt_callback = cb;
+
+	//ret = avio_open2(&fmt_ctx->pb, url, AVIO_FLAG_WRITE, &fmt_ctx->interrupt_callback, nullptr);
 	ret = avio_open(&fmt_ctx->pb, url, AVIO_FLAG_WRITE);
 	if (ret < 0)
 	{
 		cout << "avio_open failed " << endl;
 		PrintError(ret);
 		avformat_free_context(fmt_ctx);
+		is_network_connected_ = false;
 		return nullptr;
+	}
+	else
+	{
+		is_network_connected_ = true;
 	}
 
 	return fmt_ctx;
@@ -207,16 +218,23 @@ int AVMuxer::WriteData(AVPacket* pkt)
 		}
 		else
 		{
-			int64_t aa = INT64_MAX - 10;
-			aa += 11;
 			ret = av_write_frame(fmt_ctx_, pkt);
 			if (ret != 0)
 			{
+				if (ret == -10054 || ret == -10053)
+				{
+					is_network_connected_ = false;
+				}
 				cout << "av_write_frame failed : ";
 				PrintError(ret);
 				return -1;
 			}
+			else
+			{
+				is_network_connected_ = true;
+			}
 		}
+
 		last_proc_time_ = GetCurrentTimeMsec();
 	}
 	return 0;

@@ -67,6 +67,12 @@ int AVFormatBase::SetFormatContext(AVFormatContext* ctx)
 	is_network_connected_ = true;
 	last_proc_time_ = GetCurrentTimeMsec();
 
+	if (timeout_threshold_ > 0 && is_timeout_proc_enabled_)
+	{
+		AVIOInterruptCB cb = { TimeoutCallback,this };
+		fmt_ctx_->interrupt_callback = cb;
+	}
+
 	audio_index_ = -1;
 	video_index_ = -1;
 	for (int i = 0; i < fmt_ctx_->nb_streams; i++)
@@ -136,15 +142,28 @@ int AVFormatBase::SetFormatContext(AVFormatContext* ctx)
 
 }
 
-void AVFormatBase::SetTimeout(int ms)
+//void AVFormatBase::SetTimeout(int ms)
+//{
+//	unique_lock<mutex> lock(mtx_);
+//	timeout_threshold_ = ms;
+//	if (fmt_ctx_)
+//	{
+//		AVIOInterruptCB cb = { TimeoutCallback,this };
+//		fmt_ctx_->interrupt_callback = cb;
+//	}
+//}
+
+void AVFormatBase::SetTimeout(int ms,bool status)
 {
 	unique_lock<mutex> lock(mtx_);
-	connect_timeout_ = ms;
-	if (fmt_ctx_)
-	{
-		AVIOInterruptCB cb = { TimeoutCallback,this };
-		fmt_ctx_->interrupt_callback = cb;
-	}
+	timeout_threshold_ = ms;
+	is_timeout_proc_enabled_ = status;
+}
+
+void AVFormatBase::SetTimeoutEnable(bool status)
+{
+	unique_lock<mutex> lock(mtx_);
+	is_timeout_proc_enabled_ = status;
 }
 
 int AVFormatBase::TimeoutCallback(void* opaque)
@@ -161,12 +180,14 @@ int AVFormatBase::TimeoutCallback(void* opaque)
 bool AVFormatBase::IsTimeout()
 {
 	//unique_lock<mutex> lock(mtx_);
-	if (GetCurrentTimeMsec() - last_proc_time_ > connect_timeout_)
+	int64_t tmp = GetCurrentTimeMsec();
+	if (is_timeout_proc_enabled_ && (tmp - last_proc_time_ > timeout_threshold_))
 	{
 		is_network_connected_ = false;
 		last_proc_time_ = GetCurrentTimeMsec();
 		return true;
 	}
+	//is_network_connected_ = true;
 	return false;
 }
 
@@ -180,7 +201,7 @@ int AVFormatBase::CloseContext()
 			/* -muxing: set by the user before avformat_write_header().The caller must
 			* take care of closing / freeing the IO context.
 			*/
-			avio_close(fmt_ctx_->pb);
+			avio_closep(&fmt_ctx_->pb);
 		}
 		else if (fmt_ctx_->iformat)
 		{
@@ -193,6 +214,7 @@ int AVFormatBase::CloseContext()
 		avformat_free_context(fmt_ctx_);
 		fmt_ctx_ = nullptr;
 	}
+	is_network_connected_ = false;
 	return 0;
 }
 

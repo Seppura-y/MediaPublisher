@@ -6,7 +6,7 @@
 class AVMuxer : public AVFormatBase
 {
 public:
-	static AVFormatContext* OpenContext(const char* url, AVCodecParameters* vparam,AVCodecParameters* aparam,AVProtocolType type);
+	AVFormatContext* OpenContext(const char* url, AVCodecParameters* vparam,AVCodecParameters* aparam,AVProtocolType type);
 	int WriteHeader();
 	int WriteTrailer();
 	int WriteData(AVPacket* pkt);

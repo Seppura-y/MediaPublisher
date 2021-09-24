@@ -257,6 +257,8 @@ void CameraMenu::SetListItem(ItemListType item_type, int item_index)
     QString url;
     QString sub_url;
     QString server_url;
+    QString width;
+    QString height;
 
     if (item_index >= 0)
     {
@@ -276,6 +278,8 @@ void CameraMenu::SetListItem(ItemListType item_type, int item_index)
         name = obj.find("name").value().toString();
         url = obj.find("url").value().toString();
         server_url = obj.find("server_url").value().toString();
+        width = obj.find("width").value().toString();
+        height = obj.find("height").value().toString();
         if (item_type == ItemListType::ITEM_LIST_TYPE_CAMERA)
         {
             sub_url = obj.find("SubUrl").value().toString();
@@ -284,6 +288,8 @@ void CameraMenu::SetListItem(ItemListType item_type, int item_index)
         dia->SetUrl(url);
         dia->SetSubUrl(sub_url);
         dia->SetServerUrl(server_url);
+        dia->SetWidth(width);
+        dia->SetHeight(height);
         DeleteItem(item_type, item_index);
     }
 
@@ -305,6 +311,18 @@ void CameraMenu::SetListItem(ItemListType item_type, int item_index)
                 continue;
             }
 
+            if (dia->GetWidth().isEmpty())
+            {
+                QMessageBox::information(nullptr, "error", "width is empty");
+                continue;
+            }
+
+            if (dia->GetHeight().isEmpty())
+            {
+                QMessageBox::information(nullptr, "error", "height is empty");
+                continue;
+            }
+
             if (item_type == ItemListType::ITEM_LIST_TYPE_CAMERA)
             {
                 if (dia->GetSubUrl().isEmpty())
@@ -320,6 +338,8 @@ void CameraMenu::SetListItem(ItemListType item_type, int item_index)
             info.insert("sub_url", dia->GetSubUrl());
             info.insert("server_url", dia->GetServerUrl());
             info.insert("item_type", (int)item_type);
+            info.insert("width", dia->GetWidth());
+            info.insert("height", dia->GetHeight());
 
             config_tools_->WriteJson(dia->GetName(), info, (ConfigurationTools::JsonObjType)item_type);
             config_tools_->SaveJson(ITEM_LIST_CONFIG);

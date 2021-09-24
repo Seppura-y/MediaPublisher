@@ -7,7 +7,7 @@ struct AVPacket;
 class AVDemuxer : public AVFormatBase
 {
 public:
-	static AVFormatContext* OpenContext(const char* url);
+	AVFormatContext* OpenContext(const char* url);
 	int Read(AVPacket* pkt);
 	int SeekToBeginning();
 	bool is_end_of_file() { std::unique_lock<std::mutex> lock(mtx_); return is_end_of_file_; }

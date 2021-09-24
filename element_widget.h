@@ -60,6 +60,10 @@ private:
     QString name_;
     QString sub_url_;
     QString server_url_;
+    QString str_width_;
+    QString str_height_;
+    int width_ = 0;
+    int height_ = 0;
     CameraMenu::ItemListType item_type_ = CameraMenu::ItemListType::ITEM_LIST_TYPE_NONE;
 
     AVDemuxHandler* demux_handler_ = nullptr;

@@ -31,9 +31,10 @@ bool AVDemuxHandler::OpenAVSource(const char* url,int timeout)
 	if (strstr(url, "mp4") || strstr(url,"flv"))
 	{
 		is_local_file_ = true;
+		demuxer_.SetTimeout(-1, false);
 		return true;
 	}
-	demuxer_.SetTimeout(timeout);
+	demuxer_.SetTimeout(timeout,true);
 
 	last_pts_ = -1;
 	last_dts_ = -1;

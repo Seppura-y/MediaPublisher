@@ -136,6 +136,17 @@ void ElementWidget::dropEvent(QDropEvent* ev)
     this->sub_url_ = obj.find("sub_url").value().toString();
     this->server_url_ = obj.find("server_url").value().toString();
     this->item_type_ = itemType;
+    this->str_width_ = obj.find("width").value().toString();
+    this->str_height_ = obj.find("height").value().toString();
+
+    if (this->str_width_ != "Source width")
+    {
+        this->width_ = str_width_.toInt();
+    }
+    if (this->str_height_ != "Source height")
+    {
+        this->height_ = str_height_.toInt();
+    }
 
     emit SigConfigAndStartHandler();
     //ev->setDropAction(Qt::MoveAction);
@@ -225,7 +236,15 @@ int ElementWidget::ConfigHandlers()
     {
         v_encode_handler_->Stop();
     }
-    ret = v_encode_handler_->EncoderInit(para->para->width, para->para->height,demux_handler_->GetVideoSrcTimebase(),demux_handler_->GetVideoSrcFrameRate());
+    if (this->width_ > 0 && this->height_ > 0)
+    {
+        ret = v_encode_handler_->EncoderInit(this->width_, this->height_, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
+    }
+    else
+    {
+        ret = v_encode_handler_->EncoderInit(para->para->width, para->para->height, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
+    }
+    
     if (ret != 0)
     {
         qDebug() << "encode_th_->Open(inWidth, inHeight) failed";

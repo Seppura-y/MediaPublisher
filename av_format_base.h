@@ -31,7 +31,8 @@ public:
 	bool is_network_connected();
 	bool HasVideo();
 	bool HasAudio();
-	void SetTimeout(int ms);
+	void SetTimeout(int ms,bool status);
+	void SetTimeoutEnable(bool status);
 
 	int get_audio_index();
 	int get_video_index();
@@ -67,9 +68,10 @@ protected:
 
 	int audio_index_ = -1;
 	int video_index_ = -1;
-	int connect_timeout_ = -1;
+	int timeout_threshold_ = -1;
 	int last_proc_time_ = -1;
 	bool is_network_connected_ = false;
+	bool is_timeout_proc_enabled_ = true;
 
 	AVProtocolType protocol_type_ = AVProtocolType::AV_PROTOCOL_TYPE_FILE;
 private:

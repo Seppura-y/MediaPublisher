@@ -4,6 +4,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QLabel>
+#include <QCheckBox>
 
 
 #include "ui_item_set_dialog.h"
@@ -21,13 +22,19 @@ public:
 	QString GetServerUrl();
 	QString GetSubUrl();
 	QString GetName();
+	QString GetWidth();
+	QString GetHeight();
 
 	void SetUrl(QString url);
 	void SetSubUrl(QString url);
 	void SetServerUrl(QString url);
 	void SetName(QString name);
+	void SetWidth(QString width);
+	void SetHeight(QString height);
 protected slots:
-	void GetLocalFilename();
+	void OnGetLocalFilename();
+	void OnCheckBoxStateChanged();
+	void OnDialogAccepted();
 protected:
 	void InitUi(int type);
 private:
@@ -39,6 +46,10 @@ private:
 	QLineEdit* le_sub_url_ = nullptr;
 	QLineEdit* le_server_ = nullptr;
 	QLineEdit* le_name_ = nullptr;
+
+	QCheckBox* cb_default_ = nullptr;
+	QLineEdit* le_width_ = nullptr;
+	QLineEdit* le_height_ = nullptr;
 
 	QString filename_;
 };
