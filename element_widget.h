@@ -42,13 +42,15 @@ protected:
 
     int StartHandle();
     int ConfigHandlers();
-    void DestoryAllHandler();
+    void DestroyAllHandler();
 
 signals:
     //void selected(int x, int y);
     void SigConfigAndStartHandler();
+    void SigWidgetDestroyed(int index);
 public slots:
-    void OnSigalSet();
+    void OnSignalSetCycling();
+    void OnSignalStopPublishing();
     void OnConfigAndStartHandler();
 protected:
     void DemuxCallback(AVPacket* pkt);
@@ -62,8 +64,6 @@ private:
     QString server_url_;
     QString str_width_;
     QString str_height_;
-    int width_ = 0;
-    int height_ = 0;
     CameraMenu::ItemListType item_type_ = CameraMenu::ItemListType::ITEM_LIST_TYPE_NONE;
 
     AVDemuxHandler* demux_handler_ = nullptr;
@@ -75,6 +75,8 @@ private:
     IVideoView* view_ = nullptr;
 
     int widget_index_ = -1;
+    int input_width_ = -1;
+    int input_height_ = -1;
     int output_width_ = -1;
     int output_height_ = -1;
 

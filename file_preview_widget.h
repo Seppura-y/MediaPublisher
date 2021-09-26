@@ -19,7 +19,8 @@ public:
 	~FilePreviewWidget();
 
 protected slots:
-	void OnSetWidgets(QString index);
+	void OnSignalSetWidgets(QString index);
+	void OnSignalWidgetDestroyed(int index);
 protected:
 	void InitUi();
 	void SetWidgets(int count);
@@ -33,6 +34,8 @@ private:
 	QWidget* central_widget_ = nullptr;
 	QComboBox* cb_widget_set_ = nullptr;
 	QGridLayout* grid_widgets_layout_ = nullptr;
+
+	int current_widgets_count_ = -1;
 
 	std::vector<ElementWidget*> element_widgets_list_;
 };

@@ -32,7 +32,7 @@ void FilePreviewWidget::InitUi()
 	cb_widget_set_->addItem("25");
 	
 	//QObject::connect(cb_widget_set_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &FilePreviewWidget::OnSetWidgets);
-	QObject::connect(cb_widget_set_, &QComboBox::currentTextChanged, this, &FilePreviewWidget::OnSetWidgets);
+	QObject::connect(cb_widget_set_, &QComboBox::currentTextChanged, this, &FilePreviewWidget::OnSignalSetWidgets);
 
 	SetWidgets(cb_widget_set_->currentText().toInt());
 }
@@ -42,15 +42,27 @@ void FilePreviewWidget::contextMenuEvent(QContextMenuEvent* ev)
 
 }
 
-void FilePreviewWidget::OnSetWidgets(QString index)
+void FilePreviewWidget::OnSignalSetWidgets(QString index)
 {
 	qDebug() << "on set widget";
 	int n = index.toInt();
 	SetWidgets(n);
 }
 
+void FilePreviewWidget::OnSignalWidgetDestroyed(int index)
+{
+	int row = sqrt(current_widgets_count_);
+	grid_widgets_layout_->removeWidget(element_widgets_list_[index]);
+	delete element_widgets_list_[index];
+	element_widgets_list_[index] = new ElementWidget(index);
+	QObject::connect(element_widgets_list_[index], &ElementWidget::SigWidgetDestroyed, this, &FilePreviewWidget::OnSignalWidgetDestroyed);
+	element_widgets_list_[index]->setStyleSheet("background-color:rgb(62,62,62)");
+	grid_widgets_layout_->addWidget(element_widgets_list_[index], index / row, index % row);
+}
+
 void FilePreviewWidget::SetWidgets(int count)
 {
+	current_widgets_count_ = count;
 	int row = sqrt(count);
 	int remain = element_widgets_list_.size();
 
@@ -60,7 +72,7 @@ void FilePreviewWidget::SetWidgets(int count)
 		{
 			element_widgets_list_[i] = new ElementWidget(i);
 			//connect slots and init
-			
+			QObject::connect(element_widgets_list_[i], &ElementWidget::SigWidgetDestroyed, this, &FilePreviewWidget::OnSignalWidgetDestroyed);
 			element_widgets_list_[i]->setStyleSheet("background-color:rgb(62,62,62)");
 		}
 		grid_widgets_layout_->addWidget(element_widgets_list_[i], i / row, i % row);

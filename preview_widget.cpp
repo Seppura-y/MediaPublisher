@@ -44,6 +44,7 @@ void PreviewWidget::InitUI()
 	capture_widget_->setAcceptDrops(false);
 
 	ui.rb_ffmpeg->setChecked(true);
+	ui.rb_librtmp->setEnabled(false);
 }
 
 void PreviewWidget::ConnectSigAndSlots()

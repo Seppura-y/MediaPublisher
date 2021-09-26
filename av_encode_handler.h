@@ -1,11 +1,13 @@
 #pragma once
 #include "iav_base_handler.h"
 #include "av_encoder.h"
+#include "av_video_scaler.h"
 class AVEncodeHandler : public IAVBaseHandler
 {
 public:
-	int EncoderInit(int out_width, int out_height,AVRational* src_timebase,AVRational* src_frame_rate);
+	int EncodeHandlerInit(AVCodecParameters* param,int out_width, int out_height,AVRational* src_timebase,AVRational* src_frame_rate);
 	virtual void Handle(AVHandlerPackage* pkg) override;
+	virtual void Stop()override;
 	void SetEncodePause(bool status);
 	std::shared_ptr<AVParamWarpper> CopyCodecParameters();
 
@@ -23,6 +25,12 @@ private:
 	AVEncoder encoder_;
 	AVFrameDataList frame_list_;
 	AVCachedPacketDataList cache_pkt_list_;
+
+	bool is_need_scale_ = false;
+	int output_width_ = -1;
+	int output_height_ = -1;
+	AVFrame* scaled_frame_ = nullptr;
+	AVVideoScaler video_scaler_;
 
 	AVRational* media_src_timebase_ = nullptr;
 	AVRational* video_src_frame_rate_ = nullptr;

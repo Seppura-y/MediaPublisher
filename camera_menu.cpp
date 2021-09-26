@@ -8,7 +8,8 @@
 
 #include "item_set_dialog.h"
 
-#define ITEM_LIST_CONFIG "./media_publisher/conf/configuration.json"
+//#define ITEM_LIST_CONFIG "./media_publisher/conf/configuration.json"
+ #define ITEM_LIST_CONFIG "./conf/config.json"
 //#define GRID_CONFIG "./config/MediaPublisher/grid_conf.json"
 //#define DIMENSION_CONFIG "./config/MediaPublisher/Manager_init.json"
 #define ITEM_LIST_COUNT 2

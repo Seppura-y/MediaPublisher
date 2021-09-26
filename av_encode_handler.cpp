@@ -24,6 +24,13 @@ static long long NowMs()
 }
 using namespace std;
 
+static void PrintError(int err)
+{
+	char buffer[1024] = { 0 };
+	av_strerror(err, buffer, sizeof(buffer));
+	cout << buffer << endl;
+}
+
 static int GetCpuNumber()
 {
 	SYSTEM_INFO info;
@@ -31,20 +38,52 @@ static int GetCpuNumber()
 	return info.dwNumberOfProcessors;
 }
 
-int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_timebase,AVRational* src_frame_rate)
+int AVEncodeHandler::EncodeHandlerInit(AVCodecParameters* param,int out_width, int out_height,AVRational* src_timebase,AVRational* src_frame_rate)
 {
 	unique_lock<mutex> lock(mtx_);
+	int isok = 0;
 	AVCodecContext* codec_ctx = encoder_.CreateContext(AV_CODEC_ID_H264, false);
 	if (codec_ctx == nullptr)
 	{
 		cout << "encode handler create context failed" << endl;
 		return -1;
 	}
+	output_width_ = out_width;
+	output_height_ = out_height;
+	if (param)
+	{
+		if (param->width != out_width && param->height != out_height)
+		{
+			is_need_scale_ = true;
+			video_scaler_.SetDimension(param->width, param->height, out_width, out_height);
+			video_scaler_.InitScale(param->format, param->format);
+
+			scaled_frame_ = av_frame_alloc();
+			scaled_frame_->format = param->format;
+			scaled_frame_->width = output_width_;
+			scaled_frame_->height = output_height_;
+			isok = av_frame_get_buffer(scaled_frame_, 0);
+			if (isok != 0)
+			{
+				cout << "set scaled_frame failed : " << flush;
+				PrintError(isok);
+				return -1;
+			}
+		}
+		else
+		{
+			is_need_scale_ = false;
+			output_width_ = param->width;
+			output_height_ = param->height;
+		}
+	}
+
+
 
 	codec_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
 	codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
-	codec_ctx->width = out_width;
-	codec_ctx->height = out_height;
+	codec_ctx->width = output_width_;
+	codec_ctx->height = output_height_;
 
 	codec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
@@ -87,7 +126,7 @@ int AVEncodeHandler::EncoderInit(int out_width, int out_height,AVRational* src_t
 
 	encoder_.SetCodecContext(codec_ctx);
 
-	int isok = encoder_.SetOption("preset", "ultrafast");
+	isok = encoder_.SetOption("preset", "ultrafast");
 	if (isok != 0)
 	{
 		return -1;
@@ -177,7 +216,64 @@ void AVEncodeHandler::Loop()
 			this_thread::sleep_for(1ms);
 			continue;
 		}
+
+		int64_t du = frame->pkt_duration;
 		frame->pict_type = AV_PICTURE_TYPE_NONE;
+
+		if (is_need_scale_)
+		{
+			if (!scaled_frame_)
+			{
+				scaled_frame_ = av_frame_alloc();
+				scaled_frame_->format = frame->format;
+				scaled_frame_->width = output_width_;
+				scaled_frame_->height = output_height_;
+				ret = av_frame_get_buffer(scaled_frame_, 0);
+				if (ret != 0)
+				{
+					PrintError(ret);
+					continue;
+				}
+			}
+			scaled_frame_->pts = frame->pts;
+			scaled_frame_->pkt_pts = frame->pkt_pts;
+			scaled_frame_->pkt_dts = frame->pkt_dts;
+			scaled_frame_->pkt_duration = frame->pkt_duration;
+
+			if (scaled_frame_->data[0] && scaled_frame_->linesize[0])
+			{
+				video_scaler_.FrameScale(frame, scaled_frame_);
+				ret = encoder_.Send(scaled_frame_);
+				av_frame_unref(frame);
+				av_frame_free(&frame);
+				av_frame_unref(scaled_frame_);
+				av_frame_free(&scaled_frame_);
+				if (ret != 0)
+				{
+					//cout << "encode handler : send frame failed " << endl;
+					//this_thread::sleep_for(1ms);
+					continue;
+				}
+			}
+			else
+			{
+				continue;
+			}
+
+		}
+		else
+		{
+			ret = encoder_.Send(frame);
+			av_frame_unref(frame);
+			av_frame_free(&frame);
+			if (ret != 0)
+			{
+				//cout << "encode handler : send frame failed " << endl;
+				//this_thread::sleep_for(1ms);
+				continue;
+			}
+		}
+
 
 		//if (media_src_timebase_)
 		//{
@@ -208,18 +304,6 @@ void AVEncodeHandler::Loop()
 		//	//frame->pkt_pts = frame->pts;
 		//	//frame->pkt_dts = frame->pts;
 		//}
-
-		ret = encoder_.Send(frame);
-
-		int64_t du = frame->pkt_duration;
-		av_frame_unref(frame);
-		av_frame_free(&frame);
-		if (ret != 0)
-		{
-			//cout << "encode handler : send frame failed " << endl;
-			//this_thread::sleep_for(1ms);
-			continue;
-		}
 
 		ret = encoder_.Recv(pkt);
 		if (ret != 0)
@@ -338,4 +422,18 @@ int AVEncodeHandler::GetPpsSize()
 {
 	unique_lock<mutex> lock(mtx_);
 	return encoder_.GetPpsSize();
+}
+
+void AVEncodeHandler::Stop()
+{
+	{
+		unique_lock<mutex> lock(mtx_);
+		if (scaled_frame_)
+		{
+			av_frame_unref(scaled_frame_);
+			av_frame_free(&scaled_frame_);
+			scaled_frame_ = nullptr;
+		}
+	}
+	IAVBaseHandler::Stop();
 }

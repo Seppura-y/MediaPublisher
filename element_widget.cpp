@@ -31,7 +31,7 @@ extern"C"
 #include <QJsonDocument>
 #include <QPixMap>
 
-#define ITEM_LIST_CONFIG "./media_publisher/conf/configuration.json"
+//#define ITEM_LIST_CONFIG "./media_publisher/conf/configuration.json"
 #define GRID_CONFIG "./config/grid_conf.json"
 
 using namespace std;
@@ -43,7 +43,12 @@ ElementWidget::ElementWidget(int index, QWidget* parent) : QWidget(parent)
     QAction* act = menu_.addAction(QString::fromLocal8Bit("cycling"));
     act->setCheckable(true);
     act->setChecked(false);
-    QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSigalSet);
+    act->setEnabled(false);
+    QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSignalSetCycling);
+
+    act = menu_.addAction(QString::fromLocal8Bit("stop"));
+    act->setEnabled(false);
+    QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSignalStopPublishing);
 
     InitUi();
     //is_librtmp_method_ = true;
@@ -53,9 +58,12 @@ ElementWidget::ElementWidget(int index, QWidget* parent) : QWidget(parent)
 ElementWidget::ElementWidget(QWidget* parent)
 {
     QAction* act = menu_.addAction(QString::fromLocal8Bit("cycling"));
-    act->setCheckable(true);
-    act->setChecked(false);
-    QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSigalSet);
+    act->setCheckable(false);
+    //act->setChecked(false);
+    QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSignalSetCycling);
+
+    act = menu_.addAction(QString::fromLocal8Bit("stop"));
+    QObject::connect(act, &QAction::triggered, this, &ElementWidget::OnSignalStopPublishing);
 
     InitUi();
     //is_librtmp_method_ = true;
@@ -64,7 +72,7 @@ ElementWidget::ElementWidget(QWidget* parent)
 
 ElementWidget::~ElementWidget()
 {
-    DestoryAllHandler();
+    DestroyAllHandler();
 }
 
 void ElementWidget::InitUi()
@@ -141,11 +149,11 @@ void ElementWidget::dropEvent(QDropEvent* ev)
 
     if (this->str_width_ != "Source width")
     {
-        this->width_ = str_width_.toInt();
+        this->output_width_ = str_width_.toInt();
     }
     if (this->str_height_ != "Source height")
     {
-        this->height_ = str_height_.toInt();
+        this->output_height_ = str_height_.toInt();
     }
 
     emit SigConfigAndStartHandler();
@@ -155,29 +163,75 @@ void ElementWidget::dropEvent(QDropEvent* ev)
 }
 
 
-void ElementWidget::OnSigalSet()
+void ElementWidget::OnSignalSetCycling()
 {
     if (menu_.actions().at(0)->isChecked())
     {
+        //menu_.actions().at(0)->setChecked(false);
         if (demux_handler_)
         {
             demux_handler_->set_is_cyling(true);
             mux_handler_->set_is_cyling(true);
-            qDebug() << "set cycling true";
+            qDebug() << "set cycling enabled";
         }
     }
     else
     {
+        //menu_.actions().at(0)->setChecked(true);
         if (demux_handler_)
         {
             demux_handler_->set_is_cyling(false);
             mux_handler_->set_is_cyling(false);
-            qDebug() << "set cycling false";
+            qDebug() << "set cycling disabled";
         }
     }
 }
 
+void ElementWidget::OnSignalStopPublishing()
+{
+    if (demux_handler_)
+    {
+        demux_handler_->Stop();
+        delete demux_handler_;
+        demux_handler_ = nullptr;
+    }
 
+    if (v_decode_handler_)
+    {
+        v_decode_handler_->Stop();
+        delete v_decode_handler_;
+        v_decode_handler_ = nullptr;
+    }
+
+    if (v_encode_handler_)
+    {
+        v_encode_handler_->Stop();
+        delete v_encode_handler_;
+        v_encode_handler_ = nullptr;
+    }
+
+    if (mux_handler_)
+    {
+        mux_handler_->Stop();
+        delete mux_handler_;
+        mux_handler_ = nullptr;
+    }
+    if (view_)
+    {
+        view_->ResetView();
+    }
+
+    //this->resize(this->width() + 1, this->height() + 1);
+    //this->resize(this->width() - 1, this->height() - 1);
+
+    this->hide();
+    this->show();
+
+    menu_.actions().at(0)->setEnabled(false);
+    menu_.actions().at(1)->setEnabled(false);
+    //DestroyAllHandler();
+    //emit SigWidgetDestroyed(widget_index_);
+}
 
 int ElementWidget::ConfigHandlers()
 {
@@ -236,13 +290,13 @@ int ElementWidget::ConfigHandlers()
     {
         v_encode_handler_->Stop();
     }
-    if (this->width_ > 0 && this->height_ > 0)
+    if (this->output_width_ > 0 && this->output_height_ > 0)
     {
-        ret = v_encode_handler_->EncoderInit(this->width_, this->height_, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
+        ret = v_encode_handler_->EncodeHandlerInit(para->para, output_width_,output_height_, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
     }
     else
     {
-        ret = v_encode_handler_->EncoderInit(para->para->width, para->para->height, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
+        ret = v_encode_handler_->EncodeHandlerInit(para->para,para->para->width, para->para->height, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
     }
     
     if (ret != 0)
@@ -373,6 +427,10 @@ int ElementWidget::StartHandle()
             demux_handler_->Start();
         }
     }
+
+    menu_.actions().at(0)->setEnabled(true);
+    menu_.actions().at(0)->setChecked(false);
+    menu_.actions().at(1)->setEnabled(true);
     return true;
 }
 
@@ -463,9 +521,12 @@ void ElementWidget::OnConfigAndStartHandler()
         return;
     }
     StartHandle();
+
+    QAction* act = menu_.actions().at(1);
+    act->setEnabled(true);
 }
 
-void ElementWidget::DestoryAllHandler()
+void ElementWidget::DestroyAllHandler()
 {
     if (rtmp_pusher_)
     {
