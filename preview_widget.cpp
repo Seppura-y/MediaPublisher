@@ -26,7 +26,7 @@ void PreviewWidget::InitUI()
 	le_url_ = ui.le_url;
 	capture_widget_ = ui.el_wid_show;
 
-	pb_push_->setEnabled(true);
+	pb_push_->setEnabled(false);
 	pb_stop_->setEnabled(false);
 	le_width_->setText("1280");
 	le_height_->setText("720");

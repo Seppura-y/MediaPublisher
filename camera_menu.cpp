@@ -9,7 +9,7 @@
 #include "item_set_dialog.h"
 
 //#define ITEM_LIST_CONFIG "./media_publisher/conf/configuration.json"
- #define ITEM_LIST_CONFIG "./conf/config.json"
+ #define ITEM_LIST_CONFIG "./config/config.json"
 //#define GRID_CONFIG "./config/MediaPublisher/grid_conf.json"
 //#define DIMENSION_CONFIG "./config/MediaPublisher/Manager_init.json"
 #define ITEM_LIST_COUNT 2
@@ -302,25 +302,13 @@ void CameraMenu::SetListItem(ItemListType item_type, int item_index)
         {
             if (dia->GetName().isEmpty())
             {
-                QMessageBox::information(nullptr, "error", "please set a name");
+                QMessageBox::information(nullptr, "error", QString::fromLocal8Bit("请先设置视频名称"));
                 continue;
             }
 
             if (dia->GetUrl().isEmpty())
             {
-                QMessageBox::information(nullptr, "error", "url is empty");
-                continue;
-            }
-
-            if (dia->GetWidth().isEmpty())
-            {
-                QMessageBox::information(nullptr, "error", "width is empty");
-                continue;
-            }
-
-            if (dia->GetHeight().isEmpty())
-            {
-                QMessageBox::information(nullptr, "error", "height is empty");
+                QMessageBox::information(nullptr, "error", QString::fromLocal8Bit("请先设置视频地址"));
                 continue;
             }
 
@@ -328,10 +316,28 @@ void CameraMenu::SetListItem(ItemListType item_type, int item_index)
             {
                 if (dia->GetSubUrl().isEmpty())
                 {
-                    QMessageBox::information(nullptr, "error", "sub url is empty");
+                    QMessageBox::information(nullptr, "error", QString::fromLocal8Bit("请先设置子码流地址"));
                     continue;
                 }
                 info.insert("SubUrl", dia->GetSubUrl());
+            }
+
+            if (dia->GetServerUrl().isEmpty())
+            {
+                QMessageBox::information(nullptr, "error", QString::fromLocal8Bit("请先设置服务器地址"));
+                continue;
+            }
+
+            if (dia->GetWidth().isEmpty())
+            {
+                QMessageBox::information(nullptr, "error", QString::fromLocal8Bit("请先设置视频宽度"));
+                continue;
+            }
+
+            if (dia->GetHeight().isEmpty())
+            {
+                QMessageBox::information(nullptr, "error", QString::fromLocal8Bit("请先设置视频高度"));
+                continue;
             }
 
             info.insert("name",dia->GetName());
@@ -395,7 +401,7 @@ void CameraMenu::DeleteItem()
     ItemListWidget* curList = (ItemListWidget*)ui.tw_item->currentWidget()->layout()->itemAt(0)->widget();
     if (curList->currentIndex().row() < 0)
     {
-        QMessageBox::information(nullptr, "error", QString::fromLocal8Bit("please select a item"));
+        QMessageBox::information(nullptr, "error", QString::fromLocal8Bit("请先选择要删除的目标"));
         return;
     }
     this->DeleteItem((ItemListType)type, curList->currentIndex().row());
@@ -418,7 +424,7 @@ void CameraMenu::DeleteItem(ItemListType itemType, int index)
 
 void CameraMenu::InitItemList()
 {
-    if (!config_tools_->LoadJson(ITEM_LIST_CONFIG))
+    if (config_tools_->LoadJson(ITEM_LIST_CONFIG))
     {
         QMessageBox::information(nullptr, "error", QString("load %1 failed").arg(ITEM_LIST_CONFIG));
         return;

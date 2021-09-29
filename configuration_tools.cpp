@@ -5,7 +5,8 @@
 #include <QDebug>
 #include <QDir>
 
-static const QString config_file_path = "./media_publisher/conf/configuration.json";
+//static const QString config_file_path = "./media_publisher/conf/configuration.json";
+static const QString config_file_path = "./config/config.json";
 
 ConfigurationTools::ConfigurationTools()
 {
@@ -128,7 +129,7 @@ int ConfigurationTools::LoadJson(const QString filePath)
 		json_local_src_ = json_src_.value("LocalFile").toObject();
 	}
 	is_init_ = true;
-	return -1;
+	return 0;
 }
 
 int ConfigurationTools::SaveJson(const QString filepath)

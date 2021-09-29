@@ -167,7 +167,6 @@ void ElementWidget::OnSignalSetCycling()
 {
     if (menu_.actions().at(0)->isChecked())
     {
-        //menu_.actions().at(0)->setChecked(false);
         if (demux_handler_)
         {
             demux_handler_->set_is_cyling(true);
@@ -177,7 +176,6 @@ void ElementWidget::OnSignalSetCycling()
     }
     else
     {
-        //menu_.actions().at(0)->setChecked(true);
         if (demux_handler_)
         {
             demux_handler_->set_is_cyling(false);
@@ -236,11 +234,8 @@ void ElementWidget::OnSignalStopPublishing()
 int ElementWidget::ConfigHandlers()
 {
 	bool ret = false;
-    //output_width_ = this->width();
-    //output_height_ = this->height();
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //config demux handler according to avsource
+    //config demux handler
     if (!demux_handler_)
     {
         demux_handler_ = new AVDemuxHandler();
@@ -333,17 +328,10 @@ int ElementWidget::ConfigHandlers()
         view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
         view_->SetWindowId((void*)this->winId());
     }
-    //if (view_)
-    //{
-    //    view_->DestoryView();
-    //}
-    //view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
-    //view_->SetWindowId(nullptr);
-
     view_->InitView(para->para);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //reset mux handler(ffmpeg) or rtmp_pusher(librtmp) according to codec parameters
+    //reset push
     if (is_librtmp_method_)
     {
         if (!rtmp_pusher_)
@@ -376,7 +364,6 @@ int ElementWidget::ConfigHandlers()
             qDebug() << "mux_handler_ init failed";
             return -1;
         }
-        //ret = mux_handler_->Open(server_url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
         ret = mux_handler_->Open();
         if (ret != 0)
         {
@@ -385,10 +372,8 @@ int ElementWidget::ConfigHandlers()
         }
 
         v_encode_handler_->SetNextHandler(mux_handler_);
-        //demux_handler_->SetNextHandler(mux_handler_);
     }
     return 0;
-	//capture_handler_->Start();
 }
 
 int ElementWidget::StartHandle()

@@ -30,6 +30,8 @@ void FilePreviewWidget::InitUi()
 	cb_widget_set_->addItem("9");
 	cb_widget_set_->addItem("16");
 	cb_widget_set_->addItem("25");
+
+	cb_widget_set_->setCurrentIndex(1);
 	
 	//QObject::connect(cb_widget_set_, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &FilePreviewWidget::OnSetWidgets);
 	QObject::connect(cb_widget_set_, &QComboBox::currentTextChanged, this, &FilePreviewWidget::OnSignalSetWidgets);
