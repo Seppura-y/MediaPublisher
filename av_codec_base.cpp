@@ -280,6 +280,20 @@ shared_ptr<AVParamWarpper> AVCodecBase::CopyCodecParam()
 	return param;
 }
 
+std::shared_ptr<AVParametersWarpper>AVCodecBase::CopyCodecParameters()
+{
+	shared_ptr<AVParametersWarpper> param = make_shared<AVParametersWarpper>();
+	unique_lock<mutex> lock(mtx_);
+	if (!codec_ctx_)
+	{
+		cout << "copy codec param failed : codec_ctx_ is null" << endl;
+		return param;
+	}
+	*param->dst_time_base = codec_ctx_->time_base;
+	avcodec_parameters_from_context(param->para, codec_ctx_);
+	return param;
+}
+
 AVCodecContext* AVCodecBase::get_codec_ctx()
 {
 	unique_lock<mutex> lock(mtx_);

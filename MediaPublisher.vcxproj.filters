@@ -190,6 +190,12 @@
     <ClCompile Include="av_video_scaler.cpp">
       <Filter>Source Files\media</Filter>
     </ClCompile>
+    <ClCompile Include="av_audio_encode_handler.cpp">
+      <Filter>Source Files\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="av_audio_resampler.cpp">
+      <Filter>Source Files\media</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="title.ui">
@@ -350,6 +356,15 @@
       <Filter>Header Files\media</Filter>
     </ClInclude>
     <ClInclude Include="av_video_scaler.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_audio_encode_handler.h">
+      <Filter>Header Files\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="av_audio_resampler.h">
+      <Filter>Header Files\media</Filter>
+    </ClInclude>
+    <ClInclude Include="av_ffmpeg.h">
       <Filter>Header Files\media</Filter>
     </ClInclude>
   </ItemGroup>

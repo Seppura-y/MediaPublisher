@@ -26,13 +26,6 @@ static void PrintError(int err)
 #define PRINT_ERR_P(err) if(err != 0) {PrintError(err);return nullptr;}
 #define PRINT_ERR_I(err) if(err != 0) {PrintError(err);return -1;}
 
-AVDecodeHandler::~AVDecodeHandler()
-{
-	if (frame_rate_)
-	{
-		delete frame_rate_;
-	}
-}
 
 int AVDecodeHandler::Open(AVCodecParameters* param)
 {
@@ -59,7 +52,6 @@ int AVDecodeHandler::Open(AVCodecParameters* param)
 		cout << "decoder_.SetCodecContext(codec_ctx) failed" << endl;
 		return -1;
 	}
-	return ret;
 }
 
 void AVDecodeHandler::Handle(AVHandlerPackage* pkg)
@@ -117,110 +109,77 @@ void AVDecodeHandler::Loop()
 				continue;
 			}
 		}
-		else
-		{
-			ret = decoder_.Send(pkt);
-			av_packet_unref(pkt);
-			av_packet_free(&pkt);
 
-			while (1)
+		ret = decoder_.Send(pkt);
+		av_packet_unref(pkt);
+		av_packet_free(&pkt);
+
+		while (1)
+		{
+			ret = decoder_.Recv(decoded_frame_);
+			if (ret != 0)
 			{
-				ret = decoder_.Recv(decoded_frame_);
+				av_frame_unref(decoded_frame_);
+				//this_thread::sleep_for(1ms);
+				//continue;
+				break;
+			}
+			//debug
+			decoded_frame_->pts;
+			decoded_frame_->pkt_pts;
+			decoded_frame_->pkt_dts;
+			decoded_frame_->pkt_duration;
+
+			if (scaled_frame_ == nullptr)
+			{
+				scaled_frame_ = av_frame_alloc();
+				scaled_frame_->width = decoded_frame_->width;
+				scaled_frame_->height = decoded_frame_->height;
+				scaled_frame_->format = decoded_frame_->format;
+				ret = av_frame_get_buffer(scaled_frame_, 0);
+			}
+
+			if (is_need_scale_ && video_scaler_)
+			{
+				if (video_scaler_ == nullptr)
+				{
+					video_scaler_ = new AVVideoScaler();
+					video_scaler_->SetInputParam(decoded_frame_->width, decoded_frame_->height, decoded_frame_->format);
+					video_scaler_->SetoutputParam(scaler_width_, scaler_height_, scaler_fmt_);
+				}
+				ret = video_scaler_->FrameScale(decoded_frame_, scaled_frame_);
+				av_frame_unref(decoded_frame_);
 				if (ret != 0)
 				{
-					av_frame_unref(decoded_frame_);
-					//this_thread::sleep_for(1ms);
-					//continue;
-					break;
+					cout << "scale frame failed" << endl;
+					continue;
 				}
-				//debug
-				decoded_frame_->pts;
-				decoded_frame_->pkt_pts;
-				decoded_frame_->pkt_dts;
-				decoded_frame_->pkt_duration;
-
-				if ((decoded_frame_->sample_rate && decoded_frame_->sample_rate != sample_rate_) || 
-					decoded_frame_->nb_samples && decoded_frame_->nb_samples != nb_samples_)
-				{
-					sample_rate_ = decoded_frame_->sample_rate;
-					nb_samples_ = decoded_frame_->nb_samples;
-					if (audio_info_callback_)
-					{
-						audio_info_callback_(sample_rate_, nb_samples_);
-					}
-				}
-
-				if (decoder_.get_codec_ctx()->framerate.num && decoder_.get_codec_ctx()->framerate.den)
-				{
-					AVRational src(decoder_.get_codec_ctx()->framerate);
-					if (!frame_rate_)
-					{
-						frame_rate_ = new AVRational();
-					}
-					if (frame_rate_->num != decoder_.get_codec_ctx()->framerate.num || frame_rate_->den != decoder_.get_codec_ctx()->framerate.den)
-					{
-						frame_rate_->num = src.num;
-						frame_rate_->den = src.den;
-						if (video_info_callback_)
-						{
-							video_info_callback_(*frame_rate_);
-						}
-					}
-				}
-
-				//if (scaled_frame_ == nullptr)
-				//{
-				//	scaled_frame_ = av_frame_alloc();
-				//	scaled_frame_->width = decoded_frame_->width;
-				//	scaled_frame_->height = decoded_frame_->height;
-				//	scaled_frame_->format = decoded_frame_->format;
-				//	ret = av_frame_get_buffer(scaled_frame_, 0);
-				//}
-
-				//if (is_need_scale_ && video_scaler_)
-				//{
-				//	if (video_scaler_ == nullptr)
-				//	{
-				//		video_scaler_ = new AVVideoScaler();
-				//		video_scaler_->SetInputParam(decoded_frame_->width, decoded_frame_->height, decoded_frame_->format);
-				//		video_scaler_->SetoutputParam(scaler_width_, scaler_height_, scaler_fmt_);
-				//	}
-				//	ret = video_scaler_->FrameScale(decoded_frame_, scaled_frame_);
-				//	av_frame_unref(decoded_frame_);
-				//	if (ret != 0)
-				//	{
-				//		cout << "scale frame failed" << endl;
-				//		continue;
-				//	}
-				//}
-				//else
-				//{
-				//	av_frame_ref(scaled_frame_, decoded_frame_);
-				//	av_frame_unref(decoded_frame_);
-				//}
-
-				if (is_need_play_)
-				{
-					if (play_frame_ == nullptr)
-					{
-						play_frame_ = av_frame_alloc();
-					}
-					av_frame_unref(play_frame_);
-					av_frame_ref(play_frame_, decoded_frame_);
-				}
-				//IAVBaseHandler* next = GetNextHandler();
-				if (next)
-				{
-					package.av_type_ = this->av_type_;
-					package.type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_FRAME;
-					package.payload_.frame_ = decoded_frame_;
-					next->Handle(&package);
-				}
+			}
+			else
+			{
+				av_frame_ref(scaled_frame_, decoded_frame_);
 				av_frame_unref(decoded_frame_);
 			}
+
+			if (is_need_play_)
+			{
+				if (play_frame_ == nullptr)
+				{
+					play_frame_ = av_frame_alloc();
+				}
+				av_frame_unref(play_frame_);
+				av_frame_ref(play_frame_, scaled_frame_);
+			}
+			//IAVBaseHandler* next = GetNextHandler();
+			if (next)
+			{
+				package.av_type_ = this->av_type_;
+				package.type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_FRAME;
+				package.payload_.frame_ = scaled_frame_;
+				next->Handle(&package);
+			}
+			av_frame_unref(scaled_frame_);
 		}
-
-
 	}
 
 	if (decoded_frame_)

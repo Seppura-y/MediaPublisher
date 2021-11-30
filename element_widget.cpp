@@ -147,13 +147,15 @@ void ElementWidget::dropEvent(QDropEvent* ev)
     this->str_width_ = obj.find("width").value().toString();
     this->str_height_ = obj.find("height").value().toString();
 
-    if (this->str_width_ != "Source width")
+    if (this->str_width_ != "Source width" && this->str_height_ != "Source height")
     {
-        this->output_width_ = str_width_.toInt();
+        this->output_width_ = this->str_width_.toInt();
+        this->output_height_ = this->str_height_.toInt();
+        this->widget_type_ = WidgetType::WID_TYPE_SCALED;
     }
-    if (this->str_height_ != "Source height")
+    else
     {
-        this->output_height_ = str_height_.toInt();
+        this->widget_type_ = WidgetType::WID_TYPE_SOURCE;
     }
 
     emit SigConfigAndStartHandler();
@@ -231,6 +233,20 @@ void ElementWidget::OnSignalStopPublishing()
     //emit SigWidgetDestroyed(widget_index_);
 }
 
+void ElementWidget::OnConfigAndStartHandler()
+{
+    int ret = ConfigHandlers();
+    if (ret != 0)
+    {
+        qDebug() << "ConfigHandlers() failed";
+        return;
+    }
+    StartHandle();
+
+    QAction* act = menu_.actions().at(1);
+    act->setEnabled(true);
+}
+
 int ElementWidget::ConfigHandlers()
 {
 	bool ret = false;
@@ -250,7 +266,11 @@ int ElementWidget::ConfigHandlers()
         qDebug() << "demux_handler_->OpenAVSource failed";
         return -1;
     }
+    //auto para = demux_handler_->CopyVideoParameters();
+    //auto a_para = demux_handler_->CopyAudioParameters();
 
+    shared_ptr<AVParametersWarpper> video_param = demux_handler_->CopyVideoParameters();
+    shared_ptr<AVParametersWarpper> audio_param = demux_handler_->CopyAudioParameters();
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//reset decode handler according to codec parameters
 	if (!v_decode_handler_)
@@ -261,62 +281,129 @@ int ElementWidget::ConfigHandlers()
 	{
         v_decode_handler_->Stop();
 	}
-    auto para = demux_handler_->CopyVideoParameters();
-    if (!para)
+
+    if (!video_param->para)
     {
-        qDebug() << "auto para = demux_handler_->CopyVideoParameters() para is null";
+        qDebug() << "video_param->para";
         return -1;
     }
-    ret = v_decode_handler_->Open(para->para);
-	if (ret != 0)
-	{
-		qDebug() << "decode_handler_->Open failed";
-		return -1;
-	}
-    v_decode_handler_->SetNeedPlay(true);
-    demux_handler_->SetNextHandler(v_decode_handler_);
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //reset encode handler
-    if (!v_encode_handler_)
-    {
-        v_encode_handler_ = new AVEncodeHandler();
-    }
-    else
-    {
-        v_encode_handler_->Stop();
-    }
-    if (this->output_width_ > 0 && this->output_height_ > 0)
-    {
-        ret = v_encode_handler_->EncodeHandlerInit(para->para, output_width_,output_height_, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
-    }
-    else
-    {
-        ret = v_encode_handler_->EncodeHandlerInit(para->para,para->para->width, para->para->height, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
-    }
-    
+    //if (!audio_param->para)
+    //{
+    //    qDebug() << "audio_param->para";
+    //    return -1;
+    //}
+    ret = v_decode_handler_->Open(video_param->para);
     if (ret != 0)
     {
-        qDebug() << "encode_th_->Open(inWidth, inHeight) failed";
+        qDebug() << "decode_handler_->Open failed";
         return -1;
     }
-    v_encode_handler_->SetEncodePause(true);
-    v_decode_handler_->SetNextHandler(v_encode_handler_);
+    v_decode_handler_->SetNeedPlay(true);
+    demux_handler_->SetNextVideoHandler(v_decode_handler_);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //reset encode handler
+    if (this->widget_type_ == WidgetType::WID_TYPE_SCALED)
+    {
+        if (!v_encode_handler_)
+        {
+            v_encode_handler_ = new AVEncodeHandler();
+        }
+        else
+        {
+            v_encode_handler_->Stop();
+        }
+        if (this->output_width_ > 0 && this->output_height_ > 0)
+        {
+#if 1
+            video_param->dst_width_ = output_width_;
+            video_param->dst_height_ = output_height_;
+            ret = v_encode_handler_->EncodeHandlerInit(video_param);
+#else
+            ret = v_encode_handler_->EncodeHandlerInit(para->para, output_width_, output_height_, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
+#endif
+        }
+        else
+        {
+#if 1
+            video_param->dst_width_ = video_param->para->width;
+            video_param->dst_height_ = video_param->para->height;
+            ret = v_encode_handler_->EncodeHandlerInit(video_param);
+#else
+            ret = v_encode_handler_->EncodeHandlerInit(para->para, para->para->width, para->para->height, demux_handler_->GetVideoSrcTimebase(), demux_handler_->GetVideoSrcFrameRate());
+#endif
+        }
 
-    auto codec_param = v_encode_handler_->CopyCodecParameters();
+        if (ret != 0)
+        {
+            qDebug() << "v_encode_handler_->EncodeHandlerInit(video_param) failed";
+            return -1;
+        }
+        v_encode_handler_->SetEncodePause(true);
+        v_decode_handler_->SetNextHandler(v_encode_handler_);
 
-    flv_on_metadata_.has_video_ = true;
-    flv_on_metadata_.video_codec_id_ = codec_param->para->codec_id;
-    flv_on_metadata_.video_data_rate_ = codec_param->para->bit_rate;
-    flv_on_metadata_.frame_rate_ = 25 / 1;
-    flv_on_metadata_.width_ = output_width_;
-    flv_on_metadata_.height_ = output_height_;
+        auto codec_param = v_encode_handler_->CopyCodecParameters();
 
-    flv_on_metadata_.has_audio_ = false;
-    flv_on_metadata_.audio_data_rate_ = 64;
-    flv_on_metadata_.audio_sample_rate_ = 44100;
-    flv_on_metadata_.audio_sample_size_ = 16;
-    flv_on_metadata_.channels_ = 2;
-    flv_on_metadata_.pts_ = 0;
+        flv_on_metadata_.has_video_ = true;
+        flv_on_metadata_.video_codec_id_ = codec_param->para->codec_id;
+        flv_on_metadata_.video_data_rate_ = codec_param->para->bit_rate;
+        flv_on_metadata_.frame_rate_ = 25 / 1;
+        flv_on_metadata_.width_ = output_width_;
+        flv_on_metadata_.height_ = output_height_;
+
+        flv_on_metadata_.has_audio_ = false;
+        flv_on_metadata_.audio_data_rate_ = 64;
+        flv_on_metadata_.audio_sample_rate_ = 44100;
+        flv_on_metadata_.audio_sample_size_ = 16;
+        flv_on_metadata_.channels_ = 2;
+        flv_on_metadata_.pts_ = 0;
+    }
+    else
+    {
+        if (v_encode_handler_)
+        {
+            v_encode_handler_->Stop();
+        }
+    }
+
+    if (!a_decode_handler_)
+    {
+        a_decode_handler_ = new AVDecodeHandler();
+    }
+    else
+    {
+        a_decode_handler_->Stop();
+    }
+
+    if (audio_param->para)
+    {
+        ret = a_decode_handler_->Open(audio_param->para);
+        if (ret != 0)
+        {
+            qDebug() << "decode_handler_->Open failed";
+            return -1;
+        }
+
+        a_decode_handler_->SetNeedPlay(false);
+        //demux_handler_->SetNextAudioHandler(a_decode_handler_);
+
+        if (!a_encode_handler_)
+        {
+            a_encode_handler_ = new AVAudioEncodeHandler();
+        }
+        else
+        {
+            a_encode_handler_->Stop();
+        }
+#if 1
+        audio_param->dst_channel_layout_ = audio_param->para->channel_layout;
+        audio_param->dst_sample_fmt_ = audio_param->para->format;
+        audio_param->dst_sample_rate_ = audio_param->para->sample_rate;
+        a_encode_handler_->AudioEncodeHandlerInit(audio_param);
+#else
+        a_encode_handler_->AudioEncodeHandlerInit(a_para->para, a_para->para->channels, AV_SAMPLE_FMT_S16, 1024, a_para->para->channel_layout);
+#endif
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //config view
     if (view_)
@@ -328,7 +415,7 @@ int ElementWidget::ConfigHandlers()
         view_ = IVideoView::CreateView(RenderType::RENDER_TYPE_SDL);
         view_->SetWindowId((void*)this->winId());
     }
-    view_->InitView(para->para);
+    view_->InitView(video_param->para);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //reset push
@@ -338,13 +425,44 @@ int ElementWidget::ConfigHandlers()
         {
             rtmp_pusher_ = new RtmpPusher(RtmpBaseType::RTMP_BASE_TYPE_PUSH, server_url_.toStdString());
         }
-        v_encode_handler_->SetPushCallbackFunction(std::bind(&ElementWidget::VideoEncodeCallback, this, std::placeholders::_1));
-        v_encode_handler_->SetCallbackEnable(true);
+        v_encode_handler_->SetVideoCallback(std::bind(&ElementWidget::VideoEncodeCallback, this, std::placeholders::_1));
+        v_encode_handler_->SetVideoCallbackEnable(true);
     }
     else
     {
-        v_encode_handler_->SetCallbackEnable(false);
-        v_encode_handler_->SetNextHandler(nullptr);
+        int extra_data_size = 0;
+        uint8_t extra_data[4096] = { 0 };
+        std::shared_ptr<AVParametersWarpper> v_codec_param;
+        if (this->widget_type_ == WidgetType::WID_TYPE_SCALED)
+        {
+            v_encode_handler_->SetVideoCallbackEnable(false);
+            v_encode_handler_->SetNextHandler(nullptr);
+            v_codec_param = v_encode_handler_->CopyCodecParameter();
+            ret = v_encode_handler_->CopyCodecExtraData(extra_data, extra_data_size);
+            if (ret != 0)
+            {
+                qDebug() << "v_encode_handler_->CopyCodecExtraData(extra_data, extra_data_size);";
+                return -1;
+            }
+        }
+        else
+        {
+            v_codec_param = demux_handler_->CopyVideoParameters();
+            ret = v_decode_handler_->CopyVCodecExtraData(extra_data, extra_data_size);
+            if (ret != 0)
+            {
+                qDebug() << "v_decode_handler_->CopyCodecExtraData(extra_data, extra_data_size);";
+                return -1;
+            }
+        }
+
+        shared_ptr<AVParametersWarpper> a_encode_param;
+        //a_encode_param = a_encode_handler_->CopyCodecParameter();
+        a_encode_param = demux_handler_->CopyAudioParameters();
+        a_encode_param->para->codec_tag = 0;
+
+
+        
         if (!mux_handler_)
         {
             mux_handler_ = new AVMuxHandler();
@@ -353,12 +471,11 @@ int ElementWidget::ConfigHandlers()
         {
             mux_handler_->Stop();
         }
-        auto codec_param = v_encode_handler_->CopyCodecParameters();
-        int extra_data_size = 0;
-        uint8_t extra_data[4096] = { 0 };
-        ret = v_encode_handler_->CopyCodecExtraData(extra_data, extra_data_size);
-
-        ret = mux_handler_->MuxerInit(server_url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
+        //v_codec_param->para;  video_param->para;
+        //avcodec_parameters_copy(v_codec_param->para, video_param->para);
+        //v_codec_param->para->codec_tag = 0;
+        ret = mux_handler_->MuxerInit(server_url_.toStdString(), v_codec_param, a_encode_param, extra_data, extra_data_size);
+        //ret = mux_handler_->MuxerInit(server_url_.toStdString(), codec_param->para, codec_param->time_base, nullptr, nullptr, extra_data, extra_data_size);
         if (ret != 0)
         {
             qDebug() << "mux_handler_ init failed";
@@ -371,7 +488,16 @@ int ElementWidget::ConfigHandlers()
             return -1;
         }
 
-        v_encode_handler_->SetNextHandler(mux_handler_);
+        if (this->widget_type_ == WidgetType::WID_TYPE_SCALED)
+        {
+            v_encode_handler_->SetNextHandler(mux_handler_);
+        }
+        else
+        {
+            demux_handler_->SetNextVideoHandler(mux_handler_);
+        }
+
+        //demux_handler_->SetNextAudioHandler(mux_handler_);
     }
     return 0;
 }
@@ -419,7 +545,7 @@ int ElementWidget::StartHandle()
     return true;
 }
 
-void ElementWidget::DemuxCallback(AVPacket* pkt)
+void ElementWidget::DemuxVideoCallback(AVPacket* pkt)
 {
     if (pkt->stream_index == demux_handler_->GetVideoIndex())
     {
@@ -458,15 +584,39 @@ void ElementWidget::DemuxCallback(AVPacket* pkt)
     }
     else
     {
-        //if (mux_handler_)
-        //{
-        //    AVHandlerPackage* payload = new AVHandlerPackage();
-        //    payload->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
-        //    payload->payload_.packet_ = av_packet_alloc();
-        //    av_packet_ref(payload->payload_.packet_, pkt);
-        //    mux_handler_->Handle(payload);
-        //    av_packet_unref(pkt);
-        //}
+        if (mux_handler_)
+        {
+            AVHandlerPackage* payload = new AVHandlerPackage();
+            payload->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
+            payload->payload_.packet_ = av_packet_alloc();
+            av_packet_ref(payload->payload_.packet_, pkt);
+            mux_handler_->Handle(payload);
+            av_packet_unref(pkt);
+        }
+    }
+}
+
+void ElementWidget::DemuxAudioCallback(AVPacket* pkt)
+{
+    if (is_librtmp_method_)
+    {
+        if (rtmp_pusher_)
+        {
+
+        }
+    }
+    else
+    {
+        if (mux_handler_)
+        {
+            AVHandlerPackage* payload = new AVHandlerPackage();
+            payload->type_ = AVHandlerPackageType::AVHANDLER_PACKAGE_TYPE_PACKET;
+            payload->av_type_ = AVHandlerPackageAVType::AVHANDLER_PACKAGE_AV_TYPE_AUDIO;
+            payload->payload_.packet_ = av_packet_alloc();
+            av_packet_ref(payload->payload_.packet_, pkt);
+            mux_handler_->Handle(payload);
+            av_packet_unref(pkt);
+        }
     }
 }
 
@@ -497,18 +647,21 @@ void ElementWidget::VideoEncodeCallback(AVPacket* v_pkt)
         nalu, false);
 }
 
-void ElementWidget::OnConfigAndStartHandler()
+void ElementWidget::VideoInfoCallback(AVRational frame_rate)
 {
-    int ret = ConfigHandlers();
-    if (ret != 0)
+    if (demux_handler_)
     {
-        qDebug() << "ConfigHandlers() failed";
-        return;
+        demux_handler_->set_frame_rate(frame_rate);
     }
-    StartHandle();
+}
 
-    QAction* act = menu_.actions().at(1);
-    act->setEnabled(true);
+void ElementWidget::AudioInfoCallback(int sample_rate, int nb_sample)
+{
+    if (demux_handler_)
+    {
+        demux_handler_->set_sample_rate(sample_rate);
+        demux_handler_->set_nb_samples(nb_sample);
+    }
 }
 
 void ElementWidget::DestroyAllHandler()

@@ -11,7 +11,6 @@ struct AVCodecParameters;
 class AVDecodeHandler : public IAVBaseHandler
 {
 public:
-	~AVDecodeHandler();
 	int Open(AVCodecParameters* param);
 	virtual void Handle(AVHandlerPackage* pkg) override;
 	//void GetPlayFrame(AVFrame* frame);
@@ -32,13 +31,10 @@ public:
 	int GetSpsSize();
 	int GetPpsSize();
 
-	void set_audio_info_callback(std::function<void(int, int)> func) { std::lock_guard<std::mutex>lock(mtx_); audio_info_callback_ = func; };
-	void set_video_info_callback(std::function<void(AVRational)> func) { std::lock_guard<std::mutex>lock(mtx_); video_info_callback_ = func; };
+
 protected:
 	virtual void Loop() override;
 	void CreateFrame();
-	std::function<void(int, int)> audio_info_callback_ = nullptr;
-	std::function<void(AVRational)> video_info_callback_ = nullptr;
 protected:
 
 private:
@@ -53,10 +49,6 @@ private:
 	AVDecoder decoder_;
 	AVPacketDataList pkt_list_;
 	AVHandlerPackageAVType av_type_;
-
-	AVRational* frame_rate_ = nullptr;
-	int sample_rate_ = 0;
-	int nb_samples_ = 0;
 
 	int scaler_width_ = -1;
 	int scaler_height_ = -1;

@@ -44,8 +44,11 @@ public:
 	virtual void Handle(AVHandlerPackage* package) = 0;
 
 	void SetNextHandler(IAVBaseHandler* node);
-	void SetPushCallbackFunction(std::function<void(AVPacket*)> fun);
-	void SetCallbackEnable(bool status);
+
+	void SetAudioCallback(std::function<void(AVPacket*)> audio_callback_);
+	void SetVideoCallback(std::function<void(AVPacket*)> video_callback_);
+	void SetAudioCallbackEnable(bool status);
+	void SetVideoCallbackEnable(bool status);
 
 	bool IsExit() { return is_exit_; };
 protected:
@@ -56,8 +59,10 @@ protected:
 protected:
 	std::mutex mtx_;
 	std::thread worker_;
-	std::function<void(AVPacket*)> callable_object_ = nullptr;
-	bool is_callback_enable_ = false;
+	std::function<void(AVPacket*)> video_callback_ = nullptr;
+	std::function<void(AVPacket*)> audio_callback_ = nullptr;
+	bool is_video_callback_enabled_ = false;
+	bool is_audio_callback_enabled_ = false;
 	IAVBaseHandler* next_ = nullptr;
 
 	bool is_exit_ = true;

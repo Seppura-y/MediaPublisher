@@ -7,7 +7,7 @@
 
 struct AVFormatContext;
 struct AVRational;
-
+struct AVStream;
 enum class AVProtocolType
 {
 	AV_PROTOCOL_TYPE_FILE,
@@ -25,9 +25,13 @@ public:
 	int CloseContext();
 	int CloseIOContext();
 
+#if 0
 	std::shared_ptr<AVParamWarpper> CopyVideoParameters();
 	std::shared_ptr<AVParamWarpper> CopyAudioParameters();
-
+#else
+	std::shared_ptr<AVParametersWarpper> CopyVideoParameters();
+	std::shared_ptr<AVParametersWarpper> CopyAudioParameters();
+#endif
 	bool is_network_connected();
 	bool HasVideo();
 	bool HasAudio();
@@ -48,6 +52,8 @@ public:
 	int GetSpsSize();
 	int GetPpsSize();
 
+
+	AVStream* GetStream(int index);
 	virtual void SetProtocolType(AVProtocolType type);
 protected:
 	bool IsTimeout();

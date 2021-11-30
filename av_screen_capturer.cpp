@@ -290,8 +290,7 @@ void AVScreenCapturer::setOutputSize(int width, int height)
     out_height_ = height;
 }
 
-////////////////////////////////////////////////////////////////////////////
-//the caller has to free the frame
+
 AVFrame* AVScreenCapturer::ImgDataScale(void* data, int* linesize)
 {
     unique_lock<mutex> lock(mtx_);
@@ -326,8 +325,7 @@ AVFrame* AVScreenCapturer::ImgDataScale(void* data, int* linesize)
     return outFrame;
 }
 
-////////////////////////////////////////////////////////////////////////////
-//the caller has to free the frame
+
 AVFrame* AVScreenCapturer::GetCapturedFrame()
 {
     int linesize[AV_NUM_DATA_POINTERS] = { 0 };

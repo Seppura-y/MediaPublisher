@@ -78,8 +78,6 @@ int AVEncodeHandler::EncodeHandlerInit(AVCodecParameters* param,int out_width, i
 		}
 	}
 
-
-
 	codec_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
 	codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
 	codec_ctx->width = output_width_;
@@ -117,6 +115,122 @@ int AVEncodeHandler::EncodeHandlerInit(AVCodecParameters* param,int out_width, i
 		codec_ctx->framerate = { 25,1 };
 	}
 	
+	codec_ctx->thread_count = GetCpuNumber();
+
+	//AVCodecParameters par;
+	codec_ctx->max_b_frames = 0;
+	codec_ctx->gop_size = 50;
+	codec_ctx->bit_rate = 20 * 1024 * 8;
+
+	encoder_.SetCodecContext(codec_ctx);
+
+	isok = encoder_.SetOption("preset", "ultrafast");
+	if (isok != 0)
+	{
+		return -1;
+	}
+	isok = encoder_.SetOption("qp", 23);
+	if (isok != 0)
+	{
+		return -1;
+	}
+	isok = encoder_.SetOption("tune", "zerolatency");
+	if (isok != 0)
+	{
+		return -1;
+	}
+
+	isok = encoder_.SetOption("nal-hrd", "cbr");
+	if (isok != 0)
+	{
+		return -1;
+	}
+
+	isok = encoder_.OpenContext(false);
+	if (isok != 0)
+	{
+		LOGERROR("encode_.OpenContext failed");
+		return -1;
+	}
+	return 0;
+}
+int AVEncodeHandler::EncodeHandlerInit(std::shared_ptr<AVParametersWarpper> para)
+{
+	unique_lock<mutex> lock(mtx_);
+	int isok = 0;
+	AVCodecContext* codec_ctx = encoder_.CreateContext(AV_CODEC_ID_H264, false);
+	if (codec_ctx == nullptr)
+	{
+		cout << "encode handler create context failed" << endl;
+		return -1;
+	}
+	output_width_ = para->dst_width_;
+	output_height_ = para->dst_height_;
+	if (para->para)
+	{
+		if (para->para->width != output_width_ && para->para->height != output_height_)
+		{
+			is_need_scale_ = true;
+			video_scaler_.SetDimension(para->para->width, para->para->height, output_width_, output_height_);
+			video_scaler_.InitScale(para->para->format, para->para->format);
+
+			scaled_frame_ = av_frame_alloc();
+			scaled_frame_->format = para->para->format;
+			scaled_frame_->width = output_width_;
+			scaled_frame_->height = output_height_;
+			isok = av_frame_get_buffer(scaled_frame_, 0);
+			if (isok != 0)
+			{
+				cout << "set scaled_frame failed : " << flush;
+				PrintError(isok);
+				return -1;
+			}
+		}
+		else
+		{
+			is_need_scale_ = false;
+			output_width_ = para->para->width;
+			output_height_ = para->para->height;
+		}
+	}
+
+	codec_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
+	codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
+	codec_ctx->width = output_width_;
+	codec_ctx->height = output_height_;
+
+	codec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+
+	if (para->src_time_base)
+	{
+		if (!media_src_timebase_)
+		{
+			media_src_timebase_ = new AVRational();
+		}
+		media_src_timebase_->num = para->src_time_base->num;
+		media_src_timebase_->den = para->src_time_base->den;
+		codec_ctx->time_base = { media_src_timebase_->num,media_src_timebase_->den };
+	}
+	else
+	{
+		codec_ctx->time_base = av_get_time_base_q();
+	}
+
+	if (para->src_framerate)
+	{
+		if (!video_src_frame_rate_)
+		{
+			video_src_frame_rate_ = new AVRational();
+		}
+		video_src_frame_rate_->num = para->src_framerate->num;
+		video_src_frame_rate_->den = para->src_framerate->den;
+		codec_ctx->framerate = { video_src_frame_rate_->num,video_src_frame_rate_->den };
+	}
+	else
+	{
+		codec_ctx->framerate = { 25,1 };
+	}
+
 	codec_ctx->thread_count = GetCpuNumber();
 
 	//AVCodecParameters par;
@@ -335,12 +449,12 @@ void AVEncodeHandler::Loop()
 		}
 		if (cache_avaliable_)
 		{
-			if (is_callback_enable_)
+			if (is_video_callback_enabled_)
 			{
 				AVPacket* pkt = cache_pkt_list_.Pop();
-				if (callable_object_)
+				if (video_callback_)
 				{
-					callable_object_(pkt);
+					video_callback_(pkt);
 					av_packet_unref(pkt);
 					av_packet_free(&pkt);
 				}
@@ -398,6 +512,11 @@ int AVEncodeHandler::CopyCodecExtraData(uint8_t* buffer, int& size)
 shared_ptr<AVParamWarpper> AVEncodeHandler::CopyCodecParameters()
 {
 	return encoder_.CopyCodecParam();
+}
+
+std::shared_ptr<AVParametersWarpper> AVEncodeHandler::CopyCodecParameter()
+{
+	return encoder_.CopyCodecParameters();
 }
 
 uint8_t* AVEncodeHandler::GetSpsData()

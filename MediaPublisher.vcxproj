@@ -105,6 +105,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="amf.c" />
+    <ClCompile Include="av_audio_encode_handler.cpp" />
+    <ClCompile Include="av_audio_resampler.cpp" />
     <ClCompile Include="av_bs_filter.cpp" />
     <ClCompile Include="av_data_tools.cpp" />
     <ClCompile Include="avtimebase.cpp" />
@@ -167,6 +169,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="amf.h" />
+    <ClInclude Include="av_audio_encode_handler.h" />
+    <ClInclude Include="av_audio_resampler.h" />
     <ClInclude Include="av_bs_filter.h" />
     <ClInclude Include="av_data_tools.h" />
     <ClInclude Include="avtimebase.h" />
@@ -178,6 +182,7 @@
     <ClInclude Include="av_devide_handler.h" />
     <ClInclude Include="av_encoder.h" />
     <ClInclude Include="av_encode_handler.h" />
+    <ClInclude Include="av_ffmpeg.h" />
     <ClInclude Include="av_format_base.h" />
     <ClInclude Include="av_muxer.h" />
     <ClInclude Include="av_mux_handler.h" />

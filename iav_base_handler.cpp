@@ -55,15 +55,28 @@ IAVBaseHandler* IAVBaseHandler::GetNextHandler()
 	return next_;
 }
 
-void IAVBaseHandler::SetPushCallbackFunction(std::function<void(AVPacket*)> fun)
-{
-	callable_object_ = fun;
-}
 
-void IAVBaseHandler::SetCallbackEnable(bool status)
+void IAVBaseHandler::SetVideoCallbackEnable(bool status)
 {
 	unique_lock<mutex> lock(mtx_);
-	is_callback_enable_ = status;
+	is_video_callback_enabled_ = status;
+}
+
+void IAVBaseHandler::SetAudioCallbackEnable(bool status)
+{
+	unique_lock<mutex> lock(mtx_);
+	is_audio_callback_enabled_ = status;
+}
+
+void IAVBaseHandler::SetAudioCallback(std::function<void(AVPacket*)> audio_callback)
+{
+	unique_lock<mutex> lock(mtx_);
+	audio_callback_ = audio_callback;
+}
+void IAVBaseHandler::SetVideoCallback(std::function<void(AVPacket*)> video_callback)
+{
+	unique_lock<mutex> lock(mtx_);
+	video_callback_ = video_callback;
 }
 
 int64_t IAVBaseHandler::ScaleToMsec(int64_t duration, AVRational src_timebase)

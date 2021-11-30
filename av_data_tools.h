@@ -34,7 +34,6 @@ int64_t GetCurrentTimeMsec();
 void SleepForMsec(int ms);
 void FreeFrame(AVFrame** frame);
 
-
 class AVParamWarpper
 {
 public:
@@ -44,6 +43,10 @@ public:
 	~AVParamWarpper();
 //private:
 	AVParamWarpper();
+
+	AVParamWarpper(const AVParamWarpper&) = delete;
+	AVParamWarpper operator=(const AVParamWarpper&) = delete;
+	AVParamWarpper(AVParamWarpper&& p);
 };
 
 class AVPacketDataList
@@ -85,5 +88,42 @@ private:
 	std::list<AVPacket*> pkt_list_;
 	int max_list_ = 500;
 	std::mutex mtx_;
+};
+
+
+class AVParametersWarpper
+{
+public:
+	AVParametersWarpper();
+	~AVParametersWarpper();
+
+	AVParametersWarpper(const AVParametersWarpper&) = delete;
+	AVParametersWarpper operator=(const AVParametersWarpper&) = delete;
+	//AVParametersWarpper(AVParametersWarpper&& p);
+
+	int dst_sample_fmt_ = 0;
+	int dst_nb_samples_ = 0;
+	int dst_channel_layout_ = 0;
+	int dst_sample_rate_ = 0;
+
+	int pix_fmt_ = 0;
+	int dst_width_ = 0;
+	int dst_height_ = 0;
+
+	AVCodecParameters* para = nullptr;
+	AVRational* src_time_base = nullptr;
+	AVRational* dst_time_base = nullptr;
+	AVRational* src_framerate = nullptr;
+};
+
+class AVSharedPacketList
+{
+public:
+	void Push(std::shared_ptr<AVPacket> packet);
+	std::shared_ptr<AVPacket> Pop();
+	void Clear();
+	int Size();
+private:
+	std::list<std::shared_ptr<AVPacket>> shared_pkt_list_;
 };
 #endif

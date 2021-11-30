@@ -17,15 +17,6 @@ extern"C"
 #endif
 
 using namespace std;
-
-AVDemuxHandler::AVDemuxHandler()
-{
-	memset(&demux_info_, 0, sizeof(demux_info_));
-}
-AVDemuxHandler::~AVDemuxHandler()
-{
-
-}
 bool AVDemuxHandler::OpenAVSource(const char* url,int timeout)
 {
 	demuxer_.CloseContext();
@@ -84,42 +75,16 @@ void AVDemuxHandler::Loop()
 						start_time_ = av_gettime_relative();
 						is_first_packet_ = false;
 					}
-#if 0
-					if (demux_info_.vs_nb_packets == 1)
-					{
-						start_time_ = av_gettime_relative();
-						is_first_packet_ = false;
-					}
-#endif
-					AVRational src_timebase;
-					src_timebase.den = demuxer_.GetVideoTimebase()->den;
-					src_timebase.num = demuxer_.GetVideoTimebase()->num;
-					//int64_t duration = ScaleToMsec(demux_pkt->duration, src_timebase);
+					AVRational src_rational;
+					src_rational.den = demuxer_.GetVideoTimebase()->den;
+					src_rational.num = demuxer_.GetVideoTimebase()->num;
+					//int64_t duration = ScaleToMsec(demux_pkt->duration, src_rational);
 					//SleepForMsec(40);
-					
-					////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-					//demux_pkt->pts = av_rescale_q(demux_pkt->pts, src_timebase, av_get_time_base_q());
-					//demux_pkt->dts = av_rescale_q(demux_pkt->dts, src_timebase, av_get_time_base_q());
-					int64_t total_duration = 0;
-					if (demux_info_.time_base.den && demux_info_.time_base.num)
-					{
-						total_duration = av_rescale_q(demux_info_.duration, demux_info_.time_base, src_timebase);
-					}
-					if (demux_pkt->pts != AV_NOPTS_VALUE)
-					{
-						demux_pkt->pts += total_duration;
-					}
-					if (demux_pkt->dts != AV_NOPTS_VALUE)
-					{
-						demux_pkt->dts += total_duration;
-					}
-					demux_info_.vs_max_pts = FFMAX(demux_pkt->pts, demux_info_.vs_max_pts);
-					demux_info_.vs_min_pts = FFMAX(demux_pkt->pts, demux_info_.vs_min_pts);
-					////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-					last_dts_ = av_rescale_q(demux_pkt->dts, src_timebase, av_get_time_base_q());
-					last_pts_ = av_rescale_q(demux_pkt->pts, src_timebase, av_get_time_base_q());
 
-					int64_t duration = av_rescale_q(demux_pkt->duration, src_timebase, av_get_time_base_q());
+					last_dts_ = av_rescale_q(demux_pkt->dts, src_rational, av_get_time_base_q());
+					last_pts_ = av_rescale_q(demux_pkt->pts, src_rational, av_get_time_base_q());
+
+					int64_t duration = av_rescale_q(demux_pkt->duration, src_rational, av_get_time_base_q());
 					next_pts_ = last_pts_ + duration;
 					next_dts_ = last_dts_ + duration;
 				}
@@ -131,33 +96,13 @@ void AVDemuxHandler::Loop()
 						audio_start_time_ = av_gettime_relative();
 						is_first_packet_ = false;
 					}
-					AVRational src_timebase;
-					src_timebase.den = demuxer_.GetAudioTimebase()->den;
-					src_timebase.num = demuxer_.GetAudioTimebase()->num;
+					AVRational audio_src_rational;
+					audio_src_rational.den = demuxer_.GetAudioTimebase()->den;
+					audio_src_rational.num = demuxer_.GetAudioTimebase()->num;
 
-					////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-					//demux_pkt->pts = av_rescale_q(demux_pkt->pts, src_timebase, av_get_time_base_q());
-					//demux_pkt->dts = av_rescale_q(demux_pkt->dts, src_timebase, av_get_time_base_q());
-					int64_t total_duration = 0;
-					if (demux_info_.time_base.den && demux_info_.time_base.num)
-					{
-						total_duration = av_rescale_q(demux_info_.duration, demux_info_.time_base, src_timebase);
-					}
-					if (demux_pkt->pts != AV_NOPTS_VALUE)
-					{
-						demux_pkt->pts += total_duration;
-					}
-					if (demux_pkt->dts != AV_NOPTS_VALUE)
-					{
-						demux_pkt->dts += total_duration;
-					}
-					demux_info_.vs_max_pts = FFMAX(demux_pkt->pts, demux_info_.vs_max_pts);
-					demux_info_.vs_min_pts = FFMAX(demux_pkt->pts, demux_info_.vs_min_pts);
-					////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-					audio_last_dts_ = av_rescale_q(demux_pkt->dts, src_timebase, av_get_time_base_q());
-					audio_last_pts_ = av_rescale_q(demux_pkt->pts, src_timebase, av_get_time_base_q());
-					int64_t duration = av_rescale_q(demux_pkt->duration, src_timebase, av_get_time_base_q());
+					audio_last_dts_ = av_rescale_q(demux_pkt->dts, audio_src_rational, av_get_time_base_q());
+					audio_last_pts_ = av_rescale_q(demux_pkt->pts, audio_src_rational, av_get_time_base_q());
+					int64_t duration = av_rescale_q(demux_pkt->duration, audio_src_rational, av_get_time_base_q());
 
 					audio_next_pts_ = audio_last_pts_ + duration;
 					audio_next_dts_ = audio_last_dts_ + duration;
@@ -165,11 +110,9 @@ void AVDemuxHandler::Loop()
 					if (is_audio_callback_enabled_)
 					{
 						audio_callback_(demux_pkt);
-						av_packet_unref(demux_pkt);
-						continue;
 					}
-					//av_packet_unref(demux_pkt);
-					//continue;
+					av_packet_unref(demux_pkt);
+					continue;
 				}
 				else
 				{
@@ -202,45 +145,9 @@ void AVDemuxHandler::Loop()
 			if (is_cycling())
 			{
 				demuxer_.SeekToBeginning();
+				
 				is_first_packet_ = true;
 				start_time_ = -1;
-
-				int64_t v_duration = 0;
-				int64_t a_duration = 0;
-				if (demuxer_.HasAudio())
-				{
-					auto params = demuxer_.CopyAudioParameters();
-					AVStream* as = demuxer_.GetStream(demuxer_.get_audio_index());
-					if (as && nb_samples_)
-					{
-						AVRational sample_rate = { 1,sample_rate_ };
-						a_duration = av_rescale_q(nb_samples_, sample_rate, *demuxer_.GetAudioTimebase());
-						a_duration += demux_info_.as_max_pts - demux_info_.as_min_pts;
-						a_duration = av_rescale_q(a_duration, *demuxer_.GetAudioTimebase(), av_get_time_base_q());
-					}
-				}
-				
-				if ((*demuxer_.GetVideoFrameRate()).num)
-				{
-					v_duration = av_rescale_q(1, av_inv_q(*demuxer_.GetVideoFrameRate()), *demuxer_.GetVideoTimebase());
-				}
-				else
-				{
-					v_duration = 1;
-				}
-				v_duration += demux_info_.vs_max_pts - demux_info_.vs_min_pts;
-				v_duration = av_rescale_q(v_duration, *demuxer_.GetAudioTimebase(), av_get_time_base_q());
-
-				if (a_duration > v_duration)
-				{
-					demux_info_.time_base = *(demuxer_.GetAudioTimebase());
-					demux_info_.duration = av_rescale_q(a_duration, av_get_time_base_q(),demux_info_.time_base);
-				}
-				else
-				{
-					demux_info_.time_base = *(demuxer_.GetVideoTimebase());
-					demux_info_.duration = av_rescale_q(v_duration, av_get_time_base_q(), demux_info_.time_base);
-				}
 			}
 			else
 			{
@@ -276,7 +183,7 @@ void AVDemuxHandler::Stop()
 	demuxer_.SetFormatContext(nullptr);
 }
 
-#if 0
+
 std::shared_ptr<AVParamWarpper> AVDemuxHandler::CopyVideoParameters()
 {
 	return demuxer_.CopyVideoParameters();
@@ -286,17 +193,6 @@ std::shared_ptr<AVParamWarpper> AVDemuxHandler::CopyAudioParameters()
 {
 	return demuxer_.CopyAudioParameters();
 }
-#else
-std::shared_ptr<AVParametersWarpper> AVDemuxHandler::CopyVideoParameters()
-{
-	return demuxer_.CopyVideoParameters();
-}
-
-std::shared_ptr<AVParametersWarpper> AVDemuxHandler::CopyAudioParameters()
-{
-	return demuxer_.CopyAudioParameters();
-}
-#endif
 
 int AVDemuxHandler::GetVideoIndex()
 {
@@ -368,15 +264,4 @@ IAVBaseHandler* AVDemuxHandler::GetNextAudioHandler()
 {
 	lock_guard<mutex> lock(mtx_);
 	return next_audio_handler_;
-}
-
-void AVDemuxHandler::SetNextVideoHandler(IAVBaseHandler* handler)
-{
-	lock_guard<mutex> lock(mtx_);
-	next_video_handler_ = handler;
-}
-void AVDemuxHandler::SetNextAudioHandler(IAVBaseHandler* handler)
-{
-	lock_guard<mutex> lock(mtx_);
-	next_audio_handler_ = handler;
 }

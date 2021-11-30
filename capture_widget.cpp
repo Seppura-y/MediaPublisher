@@ -231,12 +231,12 @@ void CaptureWidget::OnResetParam(CaptureWidgetParameters param)
 		{
 			rtmp_pusher_ = new RtmpPusher(RtmpBaseType::RTMP_BASE_TYPE_PUSH,url_.toStdString());
 		}
-		encode_handler_->SetPushCallbackFunction(std::bind(&CaptureWidget::VideoEncodeCallback, this, std::placeholders::_1));
-		encode_handler_->SetCallbackEnable(true);
+		encode_handler_->SetVideoCallback(std::bind(&CaptureWidget::VideoEncodeCallback, this, std::placeholders::_1));
+		encode_handler_->SetVideoCallbackEnable(true);
 	}
 	else
 	{
-		encode_handler_->SetCallbackEnable(false);
+		encode_handler_->SetVideoCallbackEnable(false);
 		encode_handler_->SetNextHandler(nullptr);
 		if (!mux_handler_)
 		{

@@ -6,10 +6,12 @@ class AVEncodeHandler : public IAVBaseHandler
 {
 public:
 	int EncodeHandlerInit(AVCodecParameters* param,int out_width, int out_height,AVRational* src_timebase,AVRational* src_frame_rate);
+	int EncodeHandlerInit(std::shared_ptr<AVParametersWarpper> para);
 	virtual void Handle(AVHandlerPackage* pkg) override;
 	virtual void Stop()override;
 	void SetEncodePause(bool status);
 	std::shared_ptr<AVParamWarpper> CopyCodecParameters();
+	std::shared_ptr<AVParametersWarpper> CopyCodecParameter();
 
 	int CopyCodecExtraData(uint8_t* buffer, int& size);
 	uint8_t* GetSpsData();

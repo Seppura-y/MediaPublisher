@@ -248,7 +248,7 @@ bool AVFormatBase::HasVideo()
 
 bool AVFormatBase::HasAudio()
 {
-	unique_lock<mutex> lock(mtx_);
+	//unique_lock<mutex> lock(mtx_);
 	if (audio_index_ != -1) return true;
 	else return false;
 }
@@ -263,36 +263,65 @@ int AVFormatBase::get_video_index()
 	unique_lock<mutex> lock(mtx_);
 	return video_index_;
 }
-
+#if 0
 std::shared_ptr<AVParamWarpper> AVFormatBase::CopyVideoParameters()
 {
-	shared_ptr<AVParamWarpper> shr_ptr;
+	shared_ptr<AVParamWarpper> v_par = make_shared<AVParamWarpper>();
 	unique_lock<mutex> lock(mtx_);
 	if (!HasVideo() || fmt_ctx_ == nullptr)
 	{
-		return shr_ptr;
+		return v_par;
 	}
-	shr_ptr.reset(AVParamWarpper::Create());
-	avcodec_parameters_copy(shr_ptr->para, fmt_ctx_->streams[video_index_]->codecpar);
+	//shr_ptr.reset(AVParamWarpper::Create());
+	avcodec_parameters_copy(v_par->para, fmt_ctx_->streams[video_index_]->codecpar);
 
-	*shr_ptr->time_base = fmt_ctx_->streams[video_index_]->time_base;
-	return shr_ptr;
+	*v_par->time_base = fmt_ctx_->streams[video_index_]->time_base;
+	return v_par;
 }
 
 
 std::shared_ptr<AVParamWarpper> AVFormatBase::CopyAudioParameters()
 {
-	shared_ptr<AVParamWarpper> shr_ptr;
+	shared_ptr<AVParamWarpper> a_par = make_shared<AVParamWarpper>();
 	unique_lock<mutex> lock(mtx_);
 	if (!HasAudio() || fmt_ctx_ == nullptr)
 	{
-		return shr_ptr;
+		return a_par;
 	}
-	shr_ptr.reset(AVParamWarpper::Create());
-	avcodec_parameters_copy(shr_ptr->para, fmt_ctx_->streams[audio_index_]->codecpar);
-	*shr_ptr->time_base = fmt_ctx_->streams[audio_index_]->time_base;
-	return shr_ptr;
+	avcodec_parameters_copy(a_par->para, fmt_ctx_->streams[audio_index_]->codecpar);
+	*a_par->time_base = fmt_ctx_->streams[audio_index_]->time_base;
+	return a_par;
 }
+#else
+
+shared_ptr<AVParametersWarpper> AVFormatBase::CopyVideoParameters()
+{
+	shared_ptr<AVParametersWarpper> v_par = make_shared<AVParametersWarpper>();
+	unique_lock<mutex> lock(mtx_);
+	if (!HasVideo() || fmt_ctx_ == nullptr)
+	{
+		return v_par;
+	}
+	//shr_ptr.reset(AVParamWarpper::Create());
+	avcodec_parameters_copy(v_par->para, fmt_ctx_->streams[video_index_]->codecpar);
+
+	*v_par->src_time_base = fmt_ctx_->streams[video_index_]->time_base;
+	return v_par;
+}
+
+shared_ptr<AVParametersWarpper> AVFormatBase::CopyAudioParameters()
+{
+	shared_ptr<AVParametersWarpper> a_par = make_shared<AVParametersWarpper>();
+	unique_lock<mutex> lock(mtx_);
+	if (!HasAudio() || fmt_ctx_ == nullptr)
+	{
+		return a_par;
+	}
+	avcodec_parameters_copy(a_par->para, fmt_ctx_->streams[audio_index_]->codecpar);
+	*a_par->src_time_base = fmt_ctx_->streams[audio_index_]->time_base;
+	return a_par;
+}
+#endif
 
 void AVFormatBase::SetProtocolType(AVProtocolType type)
 {
@@ -376,4 +405,17 @@ int AVFormatBase::TimeScale(int index, AVPacket* pkt, AVRational src, long long 
 	pkt->duration = av_rescale_q_rnd(pkt->duration, src, stream->time_base, (AVRounding)(AV_ROUND_INF | AV_ROUND_PASS_MINMAX));
 	pkt->pos = -1;
 	return 0;
+}
+
+AVStream* AVFormatBase::GetStream(int index)
+{
+	lock_guard<mutex> lock(mtx_);
+	if (fmt_ctx_)
+	{
+		return fmt_ctx_->streams[index];
+	}
+	else
+	{
+		return nullptr;
+	}
 }

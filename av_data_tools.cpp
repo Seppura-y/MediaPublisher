@@ -64,6 +64,15 @@ AVParamWarpper::AVParamWarpper()
 	time_base = new AVRational();
 }
 
+AVParamWarpper::AVParamWarpper(AVParamWarpper&& p)
+{
+	time_base = p.time_base;
+	para = p.para;
+
+	p.time_base = nullptr;
+	p.para = nullptr;
+}
+
 
 void AVPacketDataList::Push(AVPacket* packet)
 {
@@ -221,4 +230,53 @@ int AVCachedPacketDataList::Size()
 {
 	unique_lock<mutex> lock(mtx_);
 	return pkt_list_.size();
+}
+
+void AVSharedPacketList::Push(std::shared_ptr<AVPacket> packet)
+{
+
+}
+
+std::shared_ptr<AVPacket> AVSharedPacketList::Pop()
+{
+	shared_ptr<AVPacket> pkt = make_shared<AVPacket>();
+	return pkt;
+}
+
+void AVSharedPacketList::Clear()
+{
+	
+}
+
+int AVSharedPacketList::Size()
+{
+	return 0;
+}
+
+AVParametersWarpper::AVParametersWarpper()
+{
+	para = avcodec_parameters_alloc();
+	src_time_base = new AVRational();
+	dst_time_base = new AVRational();
+	src_framerate = new AVRational();
+}
+
+AVParametersWarpper::~AVParametersWarpper()
+{
+	if (para)
+	{
+		avcodec_parameters_free(&para);
+	}
+	if (src_time_base)
+	{
+		delete src_time_base;
+	}
+	if (dst_time_base)
+	{
+		delete dst_time_base;
+	}
+	if (src_framerate)
+	{
+		delete src_framerate;
+	}
 }

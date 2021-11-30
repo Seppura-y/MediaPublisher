@@ -27,7 +27,6 @@ static void PrintError(int err)
 #define PRINT_ERR_P(err) if(err != 0) {PrintError(err);return nullptr;}
 #define PRINT_ERR_I(err) if(err != 0) {PrintError(err);return -1;}
 
-
 AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam, AVCodecParameters* aparam, AVProtocolType type)
 {
 	if (!url || (!vparam && !aparam))
@@ -39,53 +38,32 @@ AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam
 	int ret = -1;
 	switch (type)
 	{
-		case(AVProtocolType::AV_PROTOCOL_TYPE_FILE):
-		{
-			ret = avformat_alloc_output_context2(&fmt_ctx, nullptr, nullptr, url);
-			break;
-		}
-		case(AVProtocolType::AV_PROTOCOL_TYPE_RTMP):
-		{
-			ret = avformat_alloc_output_context2(&fmt_ctx, nullptr, "flv", url);
-			break;
-		}
-		case(AVProtocolType::AV_PROTOCOL_TYPE_RTSP):
-		{
-			cout << "rtsp is not supported yet" << endl;
-			break;
-		}
-		default:
-		{
-			cout << "muxer type not found" << endl;
-			break;
-		}
+	case(AVProtocolType::AV_PROTOCOL_TYPE_FILE):
+	{
+		ret = avformat_alloc_output_context2(&fmt_ctx, nullptr, nullptr, url);
+		break;
+	}
+	case(AVProtocolType::AV_PROTOCOL_TYPE_RTMP):
+	{
+		ret = avformat_alloc_output_context2(&fmt_ctx, nullptr, "flv", url);
+		break;
+	}
+	case(AVProtocolType::AV_PROTOCOL_TYPE_RTSP):
+	{
+		cout << "rtsp is not supported yet" << endl;
+		break;
+	}
+	default:
+	{
+		cout << "muxer type not found" << endl;
+		break;
+	}
 	}
 
 	if (ret < 0)
 	{
 		PrintError(ret);
 		return nullptr;
-	}
-
-	if (aparam)
-	{
-		AVStream* a_stream = avformat_new_stream(fmt_ctx, nullptr);
-		if (!a_stream)
-		{
-			cout << "audio : avformat_new_stream error" << endl;
-			avformat_free_context(fmt_ctx);
-			return nullptr;
-		}
-		a_stream->codecpar->codec_tag = 0;
-		a_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
-		ret = avcodec_parameters_copy(a_stream->codecpar, aparam);
-		if (ret < 0)
-		{
-			cout << "audio : avcodec_paramters_copy failed" << endl;
-			PrintError(ret);
-			avformat_free_context(fmt_ctx);
-			return nullptr;
-		}
 	}
 
 	if (vparam)
@@ -104,6 +82,27 @@ AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam
 		if (ret < 0)
 		{
 			cout << "video : avcodec_parameters_copy failed" << endl;
+			PrintError(ret);
+			avformat_free_context(fmt_ctx);
+			return nullptr;
+		}
+	}
+
+	if (aparam)
+	{
+		AVStream* a_stream = avformat_new_stream(fmt_ctx, nullptr);
+		if (!a_stream)
+		{
+			cout << "audio : avformat_new_stream error" << endl;
+			avformat_free_context(fmt_ctx);
+			return nullptr;
+		}
+		a_stream->codecpar->codec_tag = 0;
+		a_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
+		ret = avcodec_parameters_copy(a_stream->codecpar, aparam);
+		if (ret < 0)
+		{
+			cout << "audio : avcodec_paramters_copy failed" << endl;
 			PrintError(ret);
 			avformat_free_context(fmt_ctx);
 			return nullptr;
@@ -131,6 +130,110 @@ AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam
 
 	return fmt_ctx;
 }
+
+//AVFormatContext* AVMuxer::OpenContext(const char* url, AVCodecParameters* vparam, AVCodecParameters* aparam, AVProtocolType type)
+//{
+//	if (!url || (!vparam && !aparam))
+//	{
+//		cout << "(!url || (!vparam && !aparam))" << endl;
+//		return nullptr;
+//	}
+//	AVFormatContext* fmt_ctx = nullptr;
+//	int ret = -1;
+//	switch (type)
+//	{
+//		case(AVProtocolType::AV_PROTOCOL_TYPE_FILE):
+//		{
+//			ret = avformat_alloc_output_context2(&fmt_ctx, nullptr, nullptr, url);
+//			break;
+//		}
+//		case(AVProtocolType::AV_PROTOCOL_TYPE_RTMP):
+//		{
+//			ret = avformat_alloc_output_context2(&fmt_ctx, nullptr, "flv", url);
+//			break;
+//		}
+//		case(AVProtocolType::AV_PROTOCOL_TYPE_RTSP):
+//		{
+//			cout << "rtsp is not supported yet" << endl;
+//			break;
+//		}
+//		default:
+//		{
+//			cout << "muxer type not found" << endl;
+//			break;
+//		}
+//	}
+//
+//	if (ret < 0)
+//	{
+//		PrintError(ret);
+//		return nullptr;
+//	}
+//
+//	if (aparam)
+//	{
+//		AVStream* a_stream = avformat_new_stream(fmt_ctx, nullptr);
+//		if (!a_stream)
+//		{
+//			cout << "audio : avformat_new_stream error" << endl;
+//			avformat_free_context(fmt_ctx);
+//			return nullptr;
+//		}
+//		a_stream->codecpar->codec_tag = 0;
+//		a_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
+//		ret = avcodec_parameters_copy(a_stream->codecpar, aparam);
+//		if (ret < 0)
+//		{
+//			cout << "audio : avcodec_paramters_copy failed" << endl;
+//			PrintError(ret);
+//			avformat_free_context(fmt_ctx);
+//			return nullptr;
+//		}
+//	}
+//
+//	if (vparam)
+//	{
+//		AVStream* v_stream = avformat_new_stream(fmt_ctx, nullptr);
+//		if (!v_stream)
+//		{
+//			cout << "video : avformat_new_stream failed" << endl;
+//			PrintError(ret);
+//			avformat_free_context(fmt_ctx);
+//			return nullptr;
+//		}
+//		v_stream->codecpar->codec_tag = 0;
+//		v_stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+//		ret = avcodec_parameters_copy(v_stream->codecpar, vparam);
+//		if (ret < 0)
+//		{
+//			cout << "video : avcodec_parameters_copy failed" << endl;
+//			PrintError(ret);
+//			avformat_free_context(fmt_ctx);
+//			return nullptr;
+//		}
+//	}
+//
+//	//fmt_ctx->oformat->flags |= AVFMT_TS_NONSTRICT | AVFMT_TS_DISCONT | AVFMT_NOTIMESTAMPS;
+//	//AVIOInterruptCB cb = { TimeoutCallback,this };
+//	//fmt_ctx->interrupt_callback = cb;
+//
+//	//ret = avio_open2(&fmt_ctx->pb, url, AVIO_FLAG_WRITE, &fmt_ctx->interrupt_callback, nullptr);
+//	ret = avio_open(&fmt_ctx->pb, url, AVIO_FLAG_WRITE);
+//	if (ret < 0)
+//	{
+//		cout << "avio_open failed " << endl;
+//		PrintError(ret);
+//		avformat_free_context(fmt_ctx);
+//		is_network_connected_ = false;
+//		return nullptr;
+//	}
+//	else
+//	{
+//		is_network_connected_ = true;
+//	}
+//
+//	return fmt_ctx;
+//}
 
 int AVMuxer::WriteHeader()
 {
@@ -170,20 +273,105 @@ int AVMuxer::WriteTrailer()
 	return 0;
 }
 
+//fix me
+//int AVMuxer::WriteData(AVPacket* pkt)
+//{
+//	{
+//		unique_lock<mutex> lock(mtx_);
+//		if (!fmt_ctx_)
+//		{
+//			cout << "write data failed : fmt_ctx_ is null" << endl;
+//			return -1;
+//		}
+//	}
+//	//if (pkt->pts == AV_NOPTS_VALUE)
+//	//{
+//	//	pkt->pts = 0;
+//	//	pkt->dts = 0;
+//	//}
+//	//if (pkt->stream_index == get_audio_index())
+//	//{
+//	//	if (a_begin_pts_ < 0)
+//	//	{
+//	//		a_begin_pts_ = pkt->pts;
+//	//	}
+//	//	TimeScale(get_audio_index(),pkt,*a_src_timebase_,a_begin_pts_);
+//	//}
+//
+//	//if (pkt->stream_index == get_video_index())
+//	//{
+//	//	if (v_begin_pts_ < 0)
+//	//	{
+//	//		v_begin_pts_ = pkt->pts;
+//	//	}
+//	//	TimeScale(get_video_index(), pkt, *v_src_timebase_, v_begin_pts_);
+//	//}
+//
+//	{
+//		unique_lock<mutex> lock(mtx_);
+//		int ret = -1;
+//		if (protocol_type_ == AVProtocolType::AV_PROTOCOL_TYPE_FILE)
+//		{
+//			ret = av_interleaved_write_frame(fmt_ctx_, pkt);
+//			if (ret != 0)
+//			{
+//				cout << "av_interleaved_write_frame faield" << endl;
+//				PrintError(ret);
+//				return -1;
+//			}
+//		}
+//		else
+//		{
+//			ret = av_write_frame(fmt_ctx_, pkt);
+//			if (ret != 0)
+//			{
+//				if (ret == -10054 || ret == -10053)
+//				{
+//					is_network_connected_ = false;
+//				}
+//				cout << "av_write_frame failed : ";
+//				PrintError(ret);
+//				return -1;
+//			}
+//			else
+//			{
+//				is_network_connected_ = true;
+//			}
+//		}
+//
+//		last_proc_time_ = GetCurrentTimeMsec();
+//	}
+//	return 0;
+//}
+
+
+//
 int AVMuxer::WriteData(AVPacket* pkt)
 {
 	{
+		if (!pkt)return -1;
 		unique_lock<mutex> lock(mtx_);
-		if (!fmt_ctx_)
+		if (!fmt_ctx_) return -1;
+		if (pkt->pts == AV_NOPTS_VALUE)
 		{
-			cout << "write data failed : fmt_ctx_ is null" << endl;
-			return -1;
+			pkt->pts = 0;
+			pkt->dts = 0;
 		}
 	}
-	if (pkt->pts == AV_NOPTS_VALUE)
+	if (pkt->stream_index == get_video_index())
 	{
-		pkt->pts = 0;
-		pkt->dts = 0;
+		if (v_begin_pts_ < 0)
+		{
+			v_begin_pts_ = pkt->pts;
+		}
+
+		AVRational time_base;
+		time_base.den = v_src_timebase_->den;
+		time_base.num = v_src_timebase_->num;
+
+		TimeScale(get_video_index(), pkt, time_base, v_begin_pts_);
+		//TimeScale(pkt, v_src_timebase_, vbegin_pts_);
+
 	}
 	if (pkt->stream_index == get_audio_index())
 	{
@@ -191,108 +379,26 @@ int AVMuxer::WriteData(AVPacket* pkt)
 		{
 			a_begin_pts_ = pkt->pts;
 		}
-		TimeScale(get_audio_index(),pkt,*a_src_timebase_,a_begin_pts_);
-	}
+		AVRational time_base;
+		time_base.den = a_src_timebase_->den;
+		time_base.num = a_src_timebase_->num;
 
-	if (pkt->stream_index == get_video_index())
-	{
-		if (v_begin_pts_ < 0)
-		{
-			v_begin_pts_ = pkt->pts;
-		}
-		TimeScale(get_video_index(), pkt, *v_src_timebase_, v_begin_pts_);
+		TimeScale(get_audio_index(), pkt, time_base, a_begin_pts_);
+		//TimeScale(pkt, a_src_timebase_, abegin_pts_);
+
 	}
 
 	{
 		unique_lock<mutex> lock(mtx_);
-		int ret = -1;
-		if (protocol_type_ == AVProtocolType::AV_PROTOCOL_TYPE_FILE)
-		{
-			ret = av_interleaved_write_frame(fmt_ctx_, pkt);
-			if (ret != 0)
-			{
-				cout << "av_interleaved_write_frame faield" << endl;
-				PrintError(ret);
-				return -1;
-			}
-		}
-		else
-		{
-			ret = av_write_frame(fmt_ctx_, pkt);
-			if (ret != 0)
-			{
-				if (ret == -10054 || ret == -10053)
-				{
-					is_network_connected_ = false;
-				}
-				cout << "av_write_frame failed : ";
-				PrintError(ret);
-				return -1;
-			}
-			else
-			{
-				is_network_connected_ = true;
-			}
-		}
-
-		last_proc_time_ = GetCurrentTimeMsec();
+		int ret = av_interleaved_write_frame(fmt_ctx_, pkt);
+		if(ret != 0)PrintError(ret);
 	}
+
+	//last_read_time_ = NowMs();
+	//IERR(ret);
+
 	return 0;
 }
-//
-//int AVMuxer::WriteData(AVPacket* pkt)
-//{
-//	{
-//		if (!pkt)return -1;
-//		unique_lock<mutex> lock(mtx_);
-//		if (!fmt_ctx_) return -1;
-//		if (pkt->pts == AV_NOPTS_VALUE)
-//		{
-//			pkt->pts = 0;
-//			pkt->dts = 0;
-//		}
-//	}
-//	if (pkt->stream_index == get_video_index())
-//	{
-//		if (v_begin_pts_ < 0)
-//		{
-//			v_begin_pts_ = pkt->pts;
-//		}
-//
-//		AVRational time_base;
-//		time_base.den = v_src_timebase_->den;
-//		time_base.num = v_src_timebase_->num;
-//
-//		TimeScale(get_video_index(), pkt, time_base, v_begin_pts_);
-//		//TimeScale(pkt, v_src_timebase_, vbegin_pts_);
-//
-//	}
-//	if (pkt->stream_index == get_audio_index())
-//	{
-//		if (a_begin_pts_ < 0)
-//		{
-//			a_begin_pts_ = pkt->pts;
-//		}
-//		AVRational time_base;
-//		time_base.den = a_src_timebase_->den;
-//		time_base.num = a_src_timebase_->num;
-//
-//		TimeScale(get_audio_index(), pkt, time_base, a_begin_pts_);
-//		//TimeScale(pkt, a_src_timebase_, abegin_pts_);
-//
-//	}
-//
-//	{
-//		unique_lock<mutex> lock(mtx_);
-//		int ret = av_interleaved_write_frame(fmt_ctx_, pkt);
-//		if(ret != 0)PrintError(ret);
-//	}
-//
-//	//last_read_time_ = NowMs();
-//	//IERR(ret);
-//
-//	return 0;
-//}
 
 
 

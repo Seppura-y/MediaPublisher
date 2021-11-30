@@ -16,8 +16,8 @@ public:
 	int SetVideoTimebase(AVRational* src);
 	int SetAudioTimebase(AVRational* src);
 
-	void ResetVideoBeginPts() { std::unique_lock<std::mutex> lock(mtx_); v_begin_pts_ = -1; }
-	void ResetAudioBeginPts() { std::unique_lock<std::mutex> lock(mtx_); a_begin_pts_ = -1; }
+	void ResetVideoBeginPts() { std::lock_guard<std::mutex> lock(mtx_); v_begin_pts_ = -1; }
+	void ResetAudioBeginPts() { std::lock_guard<std::mutex> lock(mtx_); a_begin_pts_ = -1; }
 protected:
 
 private:

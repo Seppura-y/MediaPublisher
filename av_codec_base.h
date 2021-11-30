@@ -24,6 +24,7 @@ public:
 
 	virtual AVCodecContext* get_codec_ctx();
 	std::shared_ptr<AVParamWarpper> CopyCodecParam();
+	std::shared_ptr<AVParametersWarpper>CopyCodecParameters();
 
 	int GetCodecExtraData(uint8_t* buffer, int& size);
 	uint8_t* GetSpsData();
